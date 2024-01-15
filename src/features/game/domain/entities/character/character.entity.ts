@@ -1,9 +1,14 @@
 import { AttributeType, CharacterType } from "../../types";
-import { Attribute } from "../attribute/attribute.entity";
+import { Attribute, AttributesFactory } from "../attribute/attribute.entity";
 import { EffectBase, HPEffect } from "../effect_base/effect_base.entity";
 import { ExperienceSystem } from "../experience_system/experience_system_base.entity";
 import { ItemBase } from "../item/item.entity";
-import { SkillBase } from "../skill_base/skill_base.entity";
+import {
+  BasicAttack,
+  Fireball,
+  Heal,
+  SkillBase,
+} from "../skill_base/skill_base.entity";
 
 // CLASE PARA PERSONAJES Y ENEMIGOS
 export class Character {
@@ -14,6 +19,7 @@ export class Character {
   private _experienceSystem: ExperienceSystem;
   private _attributeMap: Map<AttributeType, Attribute>;
   private _skills: SkillBase[];
+  private _skillsLimit: number = 4;
 
   constructor({
     name,
@@ -40,6 +46,7 @@ export class Character {
         (newLevel) => ExperienceSystem.defaultLevelUpCallback(newLevel, this),
         1
       );
+
     this._skills = skills;
 
     this._attributeMap = new Map();
@@ -102,5 +109,51 @@ export class Character {
 
   isDead(): boolean {
     return this.getAttribute(AttributeType.HP).value <= 0;
+  }
+
+  learnSkill(skill: SkillBase): void {
+    if (this._skills.length >= this._skillsLimit)
+      throw new Error("Skills limit reached");
+
+    if (!skill.canBeUsedBy(this))
+      throw new Error("Skill can't be used by this character");
+
+    this._skills.push(skill);
+  }
+
+  forgetSkill(skillName: string): void {
+    this._skills = this._skills.filter((s) => s.name !== skillName);
+  }
+}
+
+export class CharacterFactory {
+  static createWizard(name: string): Character {
+    return new Character({
+      name,
+      type: CharacterType.WIZARD,
+      attributes: AttributesFactory.createAttributesWizard(),
+      objectsEquipped: [],
+      skills: [new Fireball(), new Heal(), new BasicAttack()],
+    });
+  }
+
+  static createWarrior(name: string): Character {
+    return new Character({
+      name,
+      type: CharacterType.WARRIOR,
+      attributes: AttributesFactory.createAttributesWarrior(),
+      objectsEquipped: [],
+      skills: [new BasicAttack()],
+    });
+  }
+
+  static createArcher(name: string): Character {
+    return new Character({
+      name,
+      type: CharacterType.ARCHER,
+      attributes: AttributesFactory.createAttributesArcher(),
+      objectsEquipped: [],
+      skills: [new BasicAttack()],
+    });
   }
 }

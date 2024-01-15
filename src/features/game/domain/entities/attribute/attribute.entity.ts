@@ -94,4 +94,31 @@ export class AttributesFactory {
       new Attribute(AttributeType.DEF, 45),
     ];
   }
+
+  static createAttributesWizard(): Attribute[] {
+    return [
+      new Attribute(AttributeType.HP, 100),
+      new Attribute(AttributeType.MANA, 300),
+      new Attribute(AttributeType.ATK, 30),
+      new Attribute(AttributeType.DEF, 5),
+    ];
+  }
+
+  static createAttributesWarrior(): Attribute[] {
+    return [
+      new Attribute(AttributeType.HP, 300),
+      new Attribute(AttributeType.MANA, 50),
+      new Attribute(AttributeType.ATK, 10),
+      new Attribute(AttributeType.DEF, 30),
+    ];
+  }
+
+  static createAttributesArcher(): Attribute[] {
+    return [
+      new Attribute(AttributeType.HP, 50),
+      new Attribute(AttributeType.MANA, 100),
+      new Attribute(AttributeType.ATK, 100),
+      new Attribute(AttributeType.DEF, 0),
+    ];
+  }
 }

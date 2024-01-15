@@ -75,7 +75,7 @@ export class Fireball extends SkillBase {
       name: "Fireball",
       type: [SkillType.GENERIC, SkillType.SPECIAL_EFFECT_ENEMY],
       force: intInRange(20, 50),
-      manaCost: 1,
+      manaCost: 0,
     });
   }
 }

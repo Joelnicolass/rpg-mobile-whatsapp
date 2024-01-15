@@ -49,19 +49,25 @@ export class ExperienceSystem {
     boostRates: Record<AttributeType, number>
   ): void {
     character.attributes.forEach((attr) => {
-      attr.value += Math.floor(newLevel * attr.value * boostRates[attr.name]);
+      attr.value += Math.ceil(newLevel * attr.value * boostRates[attr.name]);
 
-      attr.updateMaxValue(
-        Math.floor(newLevel * attr.value * boostRates[attr.name])
-      );
+      const newMaxValue = (attr.value += Math.ceil(
+        newLevel * attr.value * boostRates[attr.name]
+      ));
+
+      attr.updateMaxValue(newMaxValue);
     });
   }
 
   static defaultLevelUpCallback(newLevel: number, character: Character): void {
     character.attributes.forEach((attr) => {
-      attr.value += Math.floor(newLevel * attr.value * 0.01);
+      attr.value += Math.ceil(newLevel * attr.value * 0.01);
 
-      attr.updateMaxValue(Math.floor(newLevel * attr.value * 0.01));
+      const newMaxValue = (attr.value += Math.ceil(
+        newLevel * attr.value * 0.01
+      ));
+
+      attr.updateMaxValue(newMaxValue);
     });
   }
 }

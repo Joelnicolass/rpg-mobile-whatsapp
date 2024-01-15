@@ -53,7 +53,6 @@ const testSystem = setInterval(() => {
   const skill = player.skills[Math.floor(Math.random() * player.skills.length)];
 
   player.useSkill(skill.name, [enemy]);
-
   if (enemy.isDead()) {
     clearInterval(testSystem);
     console.log("WINNER: PLAYER");

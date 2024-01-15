@@ -30,7 +30,7 @@ export class Attribute {
       return;
     }
 
-    this._value += Math.floor(value);
+    this._value += Math.ceil(value);
   }
 
   resetValue() {

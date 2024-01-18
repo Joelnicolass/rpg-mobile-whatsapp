@@ -8,3 +8,6 @@ export const namesRandomAttacks = [
   "Soul Annihilator",
   "Darkness Hand of Death",
 ];
+
+export const randomItemInArray = (array: any[]) =>
+  array[Math.floor(Math.random() * array.length)];

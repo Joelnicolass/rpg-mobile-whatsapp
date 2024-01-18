@@ -28,3 +28,8 @@ export enum SkillType {
   SPECIAL_EFFECT_PLAYER = "special_effect_player",
   SPECIAL_EFFECT_ENEMY = "special_effect_enemy",
 }
+
+export enum EffectType {
+  HP = "HP",
+  BURN = "BURN",
+}

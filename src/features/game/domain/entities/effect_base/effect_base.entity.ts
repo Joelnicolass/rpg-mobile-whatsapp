@@ -1,4 +1,4 @@
-import { AttributeType, Effect } from "../../types";
+import { AttributeType, Effect, EffectType } from "../../types";
 import { Attribute } from "../attribute/attribute.entity";
 import { Character } from "../character/character.entity";
 
@@ -39,7 +39,9 @@ export abstract class EffectBase implements Effect {
     return this._duration;
   }
 
-  public abstract use(target: Character): void;
+  protected decreaseDuration(): void {
+    this._duration--;
+  }
 
   protected applyAttributeChange(target: Character): void {
     this._attributesTypes.forEach((type) => {
@@ -47,15 +49,27 @@ export abstract class EffectBase implements Effect {
       attribute.applyChange(this._value);
     });
   }
+
+  // TODO: ver si necesita ser abstracto
+  public use(target: Character): void {
+    this.applyAttributeChange(target);
+    this.decreaseDuration();
+  }
+
+  public isActive(): boolean {
+    return this._duration > 0;
+  }
 }
 
 // EFECTOS - IMPLEMENTACIONES
-export class HPEffect extends EffectBase {
+export class HPBaseEffect extends EffectBase {
   constructor(value: number) {
-    super("DamageEffect", [AttributeType.HP], value, 0);
+    super(EffectType.HP, [AttributeType.HP], value, 1);
   }
+}
 
-  use(target: Character): void {
-    this.applyAttributeChange(target);
+export class BurnEffect extends EffectBase {
+  constructor(value: number, duration: number) {
+    super(EffectType.BURN, [AttributeType.HP], value, duration);
   }
 }

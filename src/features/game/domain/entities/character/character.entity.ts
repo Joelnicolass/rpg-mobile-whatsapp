@@ -1,6 +1,6 @@
 import { AttributeType, CharacterType } from "../../types";
 import { Attribute, AttributesFactory } from "../attribute/attribute.entity";
-import { EffectBase, HPEffect } from "../effect_base/effect_base.entity";
+import { EffectBase, HPBaseEffect } from "../effect_base/effect_base.entity";
 import { ExperienceSystem } from "../experience_system/experience_system_base.entity";
 import { ItemBase } from "../item/item.entity";
 import {
@@ -13,13 +13,14 @@ import {
 // CLASE PARA PERSONAJES Y ENEMIGOS
 export class Character {
   private _name: string;
-  private _type: CharacterType;
+  private _type: CharacterType[];
   private _attributes: Attribute[];
   private _objectsEquipped: ItemBase[];
   private _experienceSystem: ExperienceSystem;
   private _attributeMap: Map<AttributeType, Attribute>;
   private _skills: SkillBase[];
   private _skillsLimit: number = 4;
+  private _activeEffects: EffectBase[] = [];
 
   constructor({
     name,
@@ -28,13 +29,15 @@ export class Character {
     objectsEquipped,
     experienceSystem,
     skills,
+    activeEffects,
   }: {
     name: string;
-    type: CharacterType;
+    type: CharacterType[];
     attributes: Attribute[];
     objectsEquipped: ItemBase[];
     skills: SkillBase[];
     experienceSystem?: ExperienceSystem;
+    activeEffects?: EffectBase[];
   }) {
     this._name = name;
     this._type = type;
@@ -51,6 +54,8 @@ export class Character {
 
     this._attributeMap = new Map();
     attributes.forEach((attr) => this._attributeMap.set(attr.name, attr));
+
+    this._activeEffects = activeEffects || [];
   }
 
   get name(): string {
@@ -69,7 +74,7 @@ export class Character {
     return this._experienceSystem.nextLevelExperience;
   }
 
-  get type(): CharacterType {
+  get types(): CharacterType[] {
     return this._type;
   }
 
@@ -89,29 +94,33 @@ export class Character {
     return this._skills;
   }
 
-  getAttribute(type: AttributeType): Attribute {
+  get activeEffects(): EffectBase[] {
+    return this._activeEffects;
+  }
+
+  public getAttribute(type: AttributeType): Attribute {
     const attribute = this._attributeMap.get(type);
 
     if (!attribute) throw new Error("Attribute not found");
     return attribute;
   }
 
-  gainExperience(amount: number): void {
+  public gainExperience(amount: number): void {
     this._experienceSystem.gainExperience(amount);
   }
 
-  useSkill(skillName: string, targets: Character[]): void {
+  public useSkill(skillName: string, targets: Character[]): void {
     const skill = this._skills.find((s) => s.name === skillName);
     if (!skill) throw new Error("Skill not found");
 
     skill.use(this, targets);
   }
 
-  isDead(): boolean {
+  public isDead(): boolean {
     return this.getAttribute(AttributeType.HP).value <= 0;
   }
 
-  learnSkill(skill: SkillBase): void {
+  public learnSkill(skill: SkillBase): void {
     if (this._skills.length >= this._skillsLimit)
       throw new Error("Skills limit reached");
 
@@ -121,8 +130,24 @@ export class Character {
     this._skills.push(skill);
   }
 
-  forgetSkill(skillName: string): void {
+  public forgetSkill(skillName: string): void {
     this._skills = this._skills.filter((s) => s.name !== skillName);
+  }
+
+  public addEffect(effect: EffectBase): void {
+    this._activeEffects.push(effect);
+  }
+
+  public applyEffects(): void {
+    this._activeEffects.forEach((effect) => {
+      if (effect.isActive()) {
+        effect.use(this);
+      }
+    });
+
+    this._activeEffects = this._activeEffects.filter((effect) =>
+      effect.isActive()
+    );
   }
 }
 
@@ -130,7 +155,7 @@ export class CharacterFactory {
   static createWizard(name: string): Character {
     return new Character({
       name,
-      type: CharacterType.WIZARD,
+      type: [CharacterType.WIZARD],
       attributes: AttributesFactory.createAttributesWizard(),
       objectsEquipped: [],
       skills: [new Fireball(), new Heal(), new BasicAttack()],
@@ -140,7 +165,7 @@ export class CharacterFactory {
   static createWarrior(name: string): Character {
     return new Character({
       name,
-      type: CharacterType.WARRIOR,
+      type: [CharacterType.WARRIOR],
       attributes: AttributesFactory.createAttributesWarrior(),
       objectsEquipped: [],
       skills: [new BasicAttack()],
@@ -150,7 +175,7 @@ export class CharacterFactory {
   static createArcher(name: string): Character {
     return new Character({
       name,
-      type: CharacterType.ARCHER,
+      type: [CharacterType.ARCHER],
       attributes: AttributesFactory.createAttributesArcher(),
       objectsEquipped: [],
       skills: [new BasicAttack()],

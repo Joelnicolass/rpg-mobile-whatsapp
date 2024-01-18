@@ -6,13 +6,17 @@ import {
 } from "../../types";
 import { intInRange, namesRandomAttacks } from "../../utils";
 import { Character } from "../character/character.entity";
-import { EffectBase, HPEffect } from "../effect_base/effect_base.entity";
+import {
+  BurnEffect,
+  EffectBase,
+  HPBaseEffect,
+} from "../effect_base/effect_base.entity";
 
 export abstract class SkillBase implements UsableInPlayerAndEnemy {
   private _name: string;
   private _type: SkillType[];
   private _force: number;
-  private _effect: EffectBase | null;
+  private _effects: EffectBase[];
   private _manaCost: number;
   private _admittedCharacterTypes: CharacterType[];
 
@@ -20,7 +24,7 @@ export abstract class SkillBase implements UsableInPlayerAndEnemy {
     name,
     type,
     force,
-    effect,
+    effects,
     manaCost,
     admittedCharacterTypes,
   }: {
@@ -28,13 +32,13 @@ export abstract class SkillBase implements UsableInPlayerAndEnemy {
     type: SkillType[];
     force: number;
     admittedCharacterTypes?: CharacterType[];
-    effect?: EffectBase;
+    effects?: EffectBase[];
     manaCost?: number;
   }) {
     this._name = name;
     this._type = type;
     this._force = force;
-    this._effect = effect || null;
+    this._effects = effects || [];
     this._manaCost = manaCost || 0;
     this._admittedCharacterTypes = admittedCharacterTypes || [
       CharacterType.WARRIOR,
@@ -59,8 +63,8 @@ export abstract class SkillBase implements UsableInPlayerAndEnemy {
     return this._type;
   }
 
-  get effect(): EffectBase | null {
-    return this._effect;
+  get effects(): EffectBase[] | null {
+    return this._effects;
   }
 
   get admittedCharacterTypes(): CharacterType[] {
@@ -78,7 +82,9 @@ export abstract class SkillBase implements UsableInPlayerAndEnemy {
   }
 
   protected applySpecialEffect(target: Character): void {
-    if (this._effect) this._effect.use(target);
+    this._effects.forEach((effect) => {
+      target.addEffect(effect);
+    });
   }
 
   public use(player: Character, targets: Character[]) {
@@ -112,7 +118,18 @@ export abstract class SkillBase implements UsableInPlayerAndEnemy {
   }
 
   public canBeUsedBy(character: Character): boolean {
-    return this._admittedCharacterTypes.includes(character.type);
+    const types = character.types;
+    const canUse = this._admittedCharacterTypes.some((t) => types.includes(t));
+
+    return canUse;
+  }
+
+  public getSkillInfo(): string {
+    return `${this._name} - ${this._force} force - ${
+      this._manaCost
+    } mana cost - ${this._type.join(", ")} - ${this._effects.map(
+      (e) => `${e.name} (${e.duration} turns)`
+    )}`;
   }
 }
 
@@ -145,6 +162,7 @@ export class Fireball extends SkillBase {
       type: [SkillType.GENERIC, SkillType.SPECIAL_EFFECT_ENEMY],
       force: intInRange(20, 100),
       admittedCharacterTypes: [CharacterType.WIZARD],
+      effects: [new BurnEffect(5, intInRange(1, 5))],
     });
   }
 }
@@ -156,7 +174,7 @@ export class Heal extends SkillBase {
       type: [SkillType.SPECIAL_EFFECT_PLAYER],
       force: 0,
       manaCost: 40,
-      effect: new HPEffect(50),
+      effects: [new HPBaseEffect(50)],
       admittedCharacterTypes: [CharacterType.WIZARD],
     });
   }

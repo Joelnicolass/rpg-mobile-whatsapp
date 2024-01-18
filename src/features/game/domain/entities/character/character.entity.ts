@@ -7,6 +7,7 @@ import {
   BasicAttack,
   Fireball,
   Heal,
+  RandomTribesAttack,
   SkillBase,
 } from "../skill_base/skill_base.entity";
 
@@ -152,33 +153,45 @@ export class Character {
 }
 
 export class CharacterFactory {
-  static createWizard(name: string): Character {
+  static createWizard(name: string, randomSkills: boolean = false): Character {
+    const skills = randomSkills
+      ? [new RandomTribesAttack(), new RandomTribesAttack()]
+      : [new Fireball(), new Heal()];
+
     return new Character({
       name,
       type: [CharacterType.WIZARD],
       attributes: AttributesFactory.createAttributesWizard(),
       objectsEquipped: [],
-      skills: [new Fireball(), new Heal(), new BasicAttack()],
+      skills,
     });
   }
 
-  static createWarrior(name: string): Character {
+  static createWarrior(name: string, randomSkills: boolean = false): Character {
+    const skills = randomSkills
+      ? [new RandomTribesAttack(), new RandomTribesAttack()]
+      : [new BasicAttack()];
+
     return new Character({
       name,
       type: [CharacterType.WARRIOR],
       attributes: AttributesFactory.createAttributesWarrior(),
       objectsEquipped: [],
-      skills: [new BasicAttack()],
+      skills,
     });
   }
 
-  static createArcher(name: string): Character {
+  static createArcher(name: string, randomSkills: boolean = false): Character {
+    const skills = randomSkills
+      ? [new RandomTribesAttack(), new RandomTribesAttack()]
+      : [new BasicAttack()];
+
     return new Character({
       name,
       type: [CharacterType.ARCHER],
       attributes: AttributesFactory.createAttributesArcher(),
       objectsEquipped: [],
-      skills: [new BasicAttack()],
+      skills,
     });
   }
 }

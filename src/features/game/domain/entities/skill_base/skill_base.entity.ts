@@ -4,7 +4,7 @@ import {
   SkillType,
   UsableInPlayerAndEnemy,
 } from "../../types";
-import { intInRange, namesRandomAttacks } from "../../utils";
+import { intInRange, namesRandomAttacks, namesTribesSkills } from "../../utils";
 import { Character } from "../character/character.entity";
 import {
   BurnEffect,
@@ -186,6 +186,17 @@ export class RandomAttackWithoutSpecialEffect extends SkillBase {
       name: namesRandomAttacks[intInRange(0, namesRandomAttacks.length - 1)],
       type: [SkillType.GENERIC],
       force: intInRange(20, 100),
+    });
+  }
+}
+
+export class RandomTribesAttack extends SkillBase {
+  constructor() {
+    super({
+      name: namesTribesSkills[intInRange(0, namesTribesSkills.length - 1)],
+      type: [SkillType.GENERIC],
+      force: intInRange(0, 200),
+      manaCost: intInRange(0, 100),
     });
   }
 }

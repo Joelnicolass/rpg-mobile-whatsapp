@@ -38,8 +38,8 @@ const showStats = (player: Character, enemy: Character) => {
   showEnemyStats(enemy);
 };
 
-export const player = CharacterFactory.createWizard("Nico");
-export const enemy = CharacterFactory.createWarrior("Enemy");
+export const player = CharacterFactory.createWizard("Nico", true);
+export const enemy = CharacterFactory.createWarrior("Enemy", true);
 
 const bs = new BattleSystem(player, enemy);
 player.forgetSkill("Basic Attack");
@@ -73,7 +73,9 @@ const testSystem = setInterval(() => {
 
     const randomSkill = randomItemInArray(enemy.skills);
     console.log("Quieres aprender esta skill? ", randomSkill.name);
+    console.table(randomSkill);
 
+    player.learnSkill(randomSkill);
     player.learnSkill(randomSkill);
 
     console.log(

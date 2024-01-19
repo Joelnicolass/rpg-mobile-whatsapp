@@ -45,4 +45,11 @@ export class BattleSystem {
     if (this._player.isDead()) return this._enemy;
     else return this._player;
   }
+
+  public escape(): boolean {
+    const random = Math.random();
+    const chance = 0.5;
+
+    return random < chance;
+  }
 }

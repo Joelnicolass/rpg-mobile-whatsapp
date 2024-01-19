@@ -194,4 +194,11 @@ export class CharacterFactory {
       skills,
     });
   }
+
+  static createRandomCharacter(name: string): Character {
+    const random = Math.random();
+    if (random < 0.33) return this.createWizard(name);
+    else if (random < 0.66) return this.createWarrior(name);
+    else return this.createArcher(name);
+  }
 }

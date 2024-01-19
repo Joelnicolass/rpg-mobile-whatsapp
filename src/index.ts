@@ -48,11 +48,11 @@ const showStats = (player: Character, enemy: Character) => {
 export const player = CharacterFactory.createWizard("Nico", true);
 
 export enum HallType {
-  EMPTY,
-  ENEMY,
-  TREASURE,
-  WAY,
-  EXIT,
+  EMPTY = "empty",
+  ENEMY = "enemy",
+  TREASURE = "treasure",
+  WAY = "way",
+  EXIT = "exit",
 }
 
 export class Hall {
@@ -71,11 +71,11 @@ export class Hall {
 }
 
 export class Dungeon {
-  halls: Hall[][];
+  halls: Hall[][] = [];
   private _rateEnemy: number = 0.2;
   private _rateTreasure: number = 0.05;
 
-  constructor(size: number) {
+  init(size: number) {
     this.halls = this._initDungeon(size);
     this._generateHalls();
     this._addDoorToNextHall();
@@ -166,37 +166,34 @@ export class Dungeon {
     return coords;
   }
 
-  private _getCoordToExit(): { x: number; y: number } {
-    let coords = this._getCoordTo(HallType.EXIT);
-    return coords[0];
+  saveDungeon(): Record<HallType, string> {
+    const elements = Object.values(HallType);
+
+    const data = elements.reduce((acc, element) => {
+      const coords = this._getCoordTo(element);
+      const coordsString = coords
+        .map((coord) => `${coord.x},${coord.y}`)
+        .join(";");
+      return {
+        ...acc,
+        [element]: coordsString,
+      };
+    }, {} as Record<HallType, string>);
+
+    return data;
   }
 
-  private _getCoordToEnemy(): { x: number; y: number }[] {
-    return this._getCoordTo(HallType.ENEMY);
-  }
+  loadDungeon(data: Record<HallType, string>): void {
+    Object.entries(data).forEach(([key, value]) => {
+      const coords = value.split(";").map((coord) => {
+        const [x, y] = coord.split(",");
+        return { x: parseInt(x), y: parseInt(y) };
+      });
 
-  private _getCoordToTreasure(): { x: number; y: number }[] {
-    return this._getCoordTo(HallType.TREASURE);
-  }
-
-  private _getCoordToWay(): { x: number; y: number }[] {
-    return this._getCoordTo(HallType.WAY);
-  }
-
-  private _getCoordToEmpty(): { x: number; y: number }[] {
-    return this._getCoordTo(HallType.EMPTY);
-  }
-
-  saveDungeon(): void {
-    const data = {
-      enemies: this._getCoordToEnemy(),
-      treasures: this._getCoordToTreasure(),
-      ways: this._getCoordToWay(),
-      empty: this._getCoordToEmpty(),
-      exit: this._getCoordToExit(),
-    };
-
-    console.log(data);
+      coords.forEach((coord) => {
+        this.halls[coord.y][coord.x] = new Hall(key as HallType);
+      });
+    });
   }
 }
 
@@ -214,7 +211,8 @@ export class GameSystem {
 
   constructor(jugador: Character) {
     this.player = jugador;
-    this.dungeon = new Dungeon(10);
+    this.dungeon = new Dungeon();
+    this.dungeon.init(10);
     this.playerPosition = { x: 0, y: 0 };
   }
 
@@ -262,4 +260,4 @@ const game = new GameSystem(player);
 game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
 game.movePlayer(Direction.RIGHT);
 
-game.dungeon.saveDungeon();
+console.log(game.dungeon.saveDungeon());

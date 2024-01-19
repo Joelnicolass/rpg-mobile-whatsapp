@@ -13,6 +13,10 @@ import {
   randomItemInArray,
 } from "./features/game/domain/utils";
 
+/* createWhatsappServer({
+  initFlow: initFlow,
+}); */
+
 const showPlayerStats = (player: Character) => {
   console.log("PLAYER STATS: ");
   player.attributes.forEach((attr) => {
@@ -42,70 +46,23 @@ const showStats = (player: Character, enemy: Character) => {
 };
 
 export const player = CharacterFactory.createWizard("Nico", true);
-export const enemy = CharacterFactory.createWarrior("Enemy", true);
 
-const bs = new BattleSystem(player, enemy);
-
-/* const testSystem = setInterval(() => {
-  const skillPlayer = randomItemInArray(player.skills);
-  const skillEnemy = randomItemInArray(enemy.skills);
-
-  bs.executeTurn(skillPlayer.name, true);
-  bs.executeTurn(skillEnemy.name, false);
-
-  console.clear();
-
-  console.log("--------------------");
-  console.log("Player uses:", skillPlayer.name);
-  console.log(skillPlayer.getSkillInfo());
-  console.log("--------------------");
-  console.log("Enemy uses:", skillEnemy.name);
-  console.log(skillEnemy.getSkillInfo());
-
-  console.log(player.activeEffects.map((e) => e.name));
-  console.log(enemy.activeEffects.map((e) => e.name));
-
-  showStats(player, enemy);
-
-  if (bs.isBattleOver()) {
-    clearInterval(testSystem);
-
-    console.log("Battle is over");
-    console.log("Winner is: ", bs.getWinnerCharacter().name);
-
-    const randomSkill = randomItemInArray(enemy.skills);
-    console.log("Quieres aprender esta skill? ", randomSkill.name);
-    console.table(randomSkill);
-
-    player.learnSkill(randomSkill);
-    player.learnSkill(randomSkill);
-
-    console.log(
-      "Player moves: ",
-      player.skills.map((s) => s.name)
-    );
-  }
-}, 1000); */
-
-/* createWhatsappServer({
-  initFlow: initFlow,
-}); */
-
-enum SalaTipo {
-  VACIA,
-  ENEMIGO,
-  TESORO,
-  PASILLO,
+export enum HallType {
+  EMPTY,
+  ENEMY,
+  TREASURE,
+  WAY,
+  EXIT,
 }
 
-class Sala {
-  tipo: SalaTipo;
-  enemigo: Character | null;
+export class Hall {
+  type: HallType;
+  enemy: Character | null;
 
-  constructor(tipo: SalaTipo = SalaTipo.VACIA) {
-    this.tipo = tipo;
-    this.enemigo =
-      tipo === SalaTipo.ENEMIGO
+  constructor(tipo: HallType = HallType.WAY) {
+    this.type = tipo;
+    this.enemy =
+      tipo === HallType.ENEMY
         ? CharacterFactory.createRandomCharacter(
             randomItemInArray(namesTribesCharacters)
           )
@@ -113,93 +70,61 @@ class Sala {
   }
 }
 
-class Mazmorra {
-  salas: Sala[][];
+export class Dungeon {
+  halls: Hall[][];
+  private _rateEnemy: number = 0.2;
+  private _rateTreasure: number = 0.05;
 
   constructor(size: number) {
-    this.salas = this.inicializarCuadricula(size);
-    this.generarSalas();
-    this.conectarSalas();
+    this.halls = this._initDungeon(size);
+    this._generateHalls();
+    this._addDoorToNextHall();
   }
 
-  inicializarCuadricula(size: number): Sala[][] {
+  private _initDungeon(size: number): Hall[][] {
     return Array.from({ length: size }, () =>
-      Array.from({ length: size }, () => new Sala())
+      Array.from({ length: size }, () => new Hall())
     );
   }
 
-  generarSalas(): void {
-    for (let i = 0; i < this.salas.length; i++) {
-      for (let j = 0; j < this.salas[i].length; j++) {
-        if (Math.random() < 0.2) {
+  private _generateHalls(): void {
+    for (let i = 0; i < this.halls.length; i++) {
+      for (let j = 0; j < this.halls[i].length; j++) {
+        if (Math.random() < this._rateEnemy) {
           // la primer sala no puede ser de tipo ENEMIGO
           if (i === 0 && j === 0) continue;
 
-          this.salas[i][j] = new Sala(SalaTipo.ENEMIGO);
-        } else if (Math.random() < 0.1) {
-          this.salas[i][j] = new Sala(SalaTipo.TESORO);
-        }
-      }
-    }
-  }
-  conectarSalas(): void {
-    const filas = this.salas.length;
-    const columnas = this.salas[0].length;
-
-    for (let y = 0; y < filas; y++) {
-      for (let x = 0; x < columnas; x++) {
-        const sala = this.salas[y][x];
-
-        // Si la sala actual no es vacía, intenta conectarla con una vecina
-        if (sala.tipo !== SalaTipo.VACIA) {
-          this.conectarConVecina(x, y);
+          this.halls[i][j] = new Hall(HallType.ENEMY);
+        } else if (Math.random() < this._rateTreasure) {
+          this.halls[i][j] = new Hall(HallType.TREASURE);
         }
       }
     }
   }
 
-  private conectarConVecina(x: number, y: number): void {
-    const filas = this.salas.length;
-    const columnas = this.salas[0].length;
+  private _addDoorToNextHall(): void {
+    const randomX = Math.floor(Math.random() * this.halls[0].length);
+    const randomY = Math.floor(Math.random() * this.halls.length);
 
-    // Direcciones posibles: arriba, abajo, izquierda, derecha
-    const direcciones = [
-      [0, -1],
-      [0, 1],
-      [-1, 0],
-      [1, 0],
-    ];
-
-    for (const [dx, dy] of direcciones) {
-      const nx = x + dx;
-      const ny = y + dy;
-
-      // Verifica si la posición vecina está dentro de la mazmorra
-      if (nx >= 0 && nx < columnas && ny >= 0 && ny < filas) {
-        // Si la sala vecina es vacía, conviértela en pasillo
-        if (this.salas[ny][nx].tipo === SalaTipo.VACIA) {
-          this.salas[ny][nx] = new Sala(SalaTipo.PASILLO);
-        }
-      }
-    }
+    this.halls[randomY][randomX] = new Hall(HallType.EXIT);
   }
 
-  graficarMazmorra(
+  __SHOWINCONSOLE__(
     playerPosition: { x: number; y: number } = { x: 0, y: 0 }
   ): void {
-    const filas = this.salas.length;
-    const columnas = this.salas[0].length;
+    const filas = this.halls.length;
+    const columnas = this.halls[0].length;
     let representacionGrafica = "";
 
     for (let y = 0; y < filas; y++) {
       let fila = "";
       for (let x = 0; x < columnas; x++) {
         if (playerPosition.x === x && playerPosition.y === y) {
-          fila += "P";
+          fila += "🧍🏻‍♂️";
           continue;
         }
 
-        fila += this.caracterParaSala(this.salas[y][x]);
+        fila += this.caracterParaSala(this.halls[y][x]);
       }
       representacionGrafica += fila + "\n";
     }
@@ -207,70 +132,134 @@ class Mazmorra {
     console.log(representacionGrafica);
   }
 
-  private caracterParaSala(sala: Sala): string {
-    switch (sala.tipo) {
-      case SalaTipo.VACIA:
+  private caracterParaSala(sala: Hall): string {
+    switch (sala.type) {
+      case HallType.EMPTY:
         return " ";
-      case SalaTipo.ENEMIGO:
-        return "E";
-      case SalaTipo.TESORO:
-        return "T";
-      case SalaTipo.PASILLO:
-        return "-";
+      case HallType.ENEMY:
+        return "👹";
+      case HallType.TREASURE:
+        return "💰";
+      case HallType.WAY:
+        return "👣";
+      case HallType.EXIT:
+        return "🚪";
       default:
         return " ";
     }
   }
+
+  private _getCoordTo(hallType: HallType): { x: number; y: number }[] {
+    let coords: {
+      x: number;
+      y: number;
+    }[] = [];
+
+    for (let y = 0; y < this.halls.length; y++) {
+      for (let x = 0; x < this.halls[y].length; x++) {
+        if (this.halls[y][x].type === hallType) {
+          coords.push({ x, y });
+        }
+      }
+    }
+
+    return coords;
+  }
+
+  private _getCoordToExit(): { x: number; y: number } {
+    let coords = this._getCoordTo(HallType.EXIT);
+    return coords[0];
+  }
+
+  private _getCoordToEnemy(): { x: number; y: number }[] {
+    return this._getCoordTo(HallType.ENEMY);
+  }
+
+  private _getCoordToTreasure(): { x: number; y: number }[] {
+    return this._getCoordTo(HallType.TREASURE);
+  }
+
+  private _getCoordToWay(): { x: number; y: number }[] {
+    return this._getCoordTo(HallType.WAY);
+  }
+
+  private _getCoordToEmpty(): { x: number; y: number }[] {
+    return this._getCoordTo(HallType.EMPTY);
+  }
+
+  saveDungeon(): void {
+    const data = {
+      enemies: this._getCoordToEnemy(),
+      treasures: this._getCoordToTreasure(),
+      ways: this._getCoordToWay(),
+      empty: this._getCoordToEmpty(),
+      exit: this._getCoordToExit(),
+    };
+
+    console.log(data);
+  }
 }
 
-class GameSystem {
-  jugador: Character;
-  mazmorra: Mazmorra;
-  posicionActual: { x: number; y: number };
+export enum Direction {
+  UP = "up",
+  DOWN = "down",
+  LEFT = "left",
+  RIGHT = "right",
+}
+
+export class GameSystem {
+  player: Character;
+  dungeon: Dungeon;
+  playerPosition: { x: number; y: number };
 
   constructor(jugador: Character) {
-    this.jugador = jugador;
-    this.mazmorra = new Mazmorra(10);
-    this.posicionActual = { x: 0, y: 0 };
+    this.player = jugador;
+    this.dungeon = new Dungeon(10);
+    this.playerPosition = { x: 0, y: 0 };
   }
 
-  moverJugador(direccion: string): void {
-    // Ejemplo básico de movimiento
-    switch (direccion) {
-      case "norte":
-        this.posicionActual.y = Math.max(0, this.posicionActual.y - 1);
+  movePlayer(direction: Direction): void {
+    switch (direction) {
+      case Direction.UP:
+        this.playerPosition.y = Math.max(0, this.playerPosition.y - 1);
         break;
-      case "sur":
-        this.posicionActual.y = Math.min(
-          this.mazmorra.salas.length - 1,
-          this.posicionActual.y + 1
+      case Direction.DOWN:
+        this.playerPosition.y = Math.min(
+          this.dungeon.halls.length - 1,
+          this.playerPosition.y + 1
         );
         break;
-      case "este":
-        this.posicionActual.x = Math.min(
-          this.mazmorra.salas[0].length - 1,
-          this.posicionActual.x + 1
+      case Direction.RIGHT:
+        this.playerPosition.x = Math.min(
+          this.dungeon.halls[0].length - 1,
+          this.playerPosition.x + 1
         );
         break;
-      case "oeste":
-        this.posicionActual.x = Math.max(0, this.posicionActual.x - 1);
+      case Direction.LEFT:
+        this.playerPosition.x = Math.max(0, this.playerPosition.x - 1);
         break;
     }
 
-    this.ejecutarTurno();
+    this._play();
   }
 
-  ejecutarTurno(): void {
-    let salaActual =
-      this.mazmorra.salas[this.posicionActual.y][this.posicionActual.x];
-    if (salaActual.tipo === SalaTipo.ENEMIGO && salaActual.enemigo) {
-      let battleSystem = new BattleSystem(this.jugador, salaActual.enemigo);
-      // Aquí se inicia la batalla. Necesitarás implementar la lógica de la batalla.
+  // TODO implementar turnos
+  private _play(): void {
+    let currentHall =
+      this.dungeon.halls[this.playerPosition.y][this.playerPosition.x];
+
+    if (currentHall.type === HallType.ENEMY && currentHall.enemy) {
+      let bs = new BattleSystem(this.player, currentHall.enemy);
+
+      console.log("Batalla contra: ", currentHall.enemy.name);
     }
 
-    // Otras acciones que ocurran en el turno, como encontrar un tesoro, pueden ser manejadas aquí.
+    // TODO: Implementar el resto de acciones
   }
 }
 
 const game = new GameSystem(player);
-game.mazmorra.graficarMazmorra(game.posicionActual);
+game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+game.movePlayer(Direction.RIGHT);
+
+game.dungeon.saveDungeon();

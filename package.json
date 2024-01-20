@@ -22,11 +22,13 @@
     "@whiskeysockets/baileys": "6.5.0",
     "axios": "^1.6.5",
     "cache-manager": "5.2.4",
+    "readline-sync": "^1.4.10",
     "wa-sticker-formatter": "4.4.4"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/readline-sync": "^1.4.8",
     "typescript": "^5.3.3"
   }
 }

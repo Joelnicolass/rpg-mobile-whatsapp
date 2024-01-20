@@ -14,6 +14,8 @@ import {
   randomItemInArray,
 } from "./features/game/domain/utils";
 
+import { keyIn } from "readline-sync";
+
 /* createWhatsappServer({
   initFlow: initFlow,
 }); */
@@ -59,6 +61,7 @@ export enum HallType {
 export class Hall {
   type: HallType;
   enemy: Character | null;
+  treasure: any | null; // TODO implementar tesoros
 
   constructor(tipo: HallType = HallType.WAY) {
     this.type = tipo;
@@ -173,27 +176,30 @@ export class Dungeon {
   __SHOWINCONSOLE__(
     playerPosition: { x: number; y: number } = { x: 0, y: 0 }
   ): void {
-    const filas = this.halls.length;
-    const columnas = this.halls[0].length;
-    let representacionGrafica = "";
+    const rows = this.halls.length;
+    const columns = this.halls[0].length;
+    let screen = "";
 
-    for (let y = 0; y < filas; y++) {
-      let fila = "";
-      for (let x = 0; x < columnas; x++) {
+    for (let y = 0; y < rows; y++) {
+      let row = "";
+      for (let x = 0; x < columns; x++) {
         if (playerPosition.x === x && playerPosition.y === y) {
-          fila += "🧍🏻‍♂️";
+          row += "🧍🏻‍♂️";
           continue;
         }
 
-        fila += this.caracterParaSala(this.halls[y][x]);
+        row += this._screenSymbol(this.halls[y][x]);
       }
-      representacionGrafica += fila + "\n";
+      screen += row + "\n";
     }
 
-    console.log(representacionGrafica);
+    console.log("\x1b[36m%s\x1b[0m", "DUNGEON");
+    console.log("\x1b[36m%s\x1b[0m", "-------");
+    console.log(screen);
+    console.log("\x1b[36m%s\x1b[0m", "-------");
   }
 
-  private caracterParaSala(sala: Hall): string {
+  private _screenSymbol(sala: Hall): string {
     switch (sala.type) {
       case HallType.EMPTY:
         return "  ";
@@ -256,6 +262,10 @@ export class Dungeon {
       });
     });
   }
+
+  getHall(x: number, y: number): Hall {
+    return this.halls[y][x];
+  }
 }
 
 export enum Direction {
@@ -277,32 +287,65 @@ export class GameSystem {
     this.playerPosition = { x: 0, y: 0 };
   }
 
+  // TODO refactorizar
   movePlayer(direction: Direction): void {
     switch (direction) {
       case Direction.UP:
+        const nextHall = this.dungeon.getHall(
+          this.playerPosition.x,
+          Math.max(0, this.playerPosition.y - 1)
+        );
+
+        if (nextHall.type === HallType.EMPTY) return;
+
         this.playerPosition.y = Math.max(0, this.playerPosition.y - 1);
+
         break;
       case Direction.DOWN:
+        const nextHallDown = this.dungeon.getHall(
+          this.playerPosition.x,
+          Math.min(this.dungeon.halls.length - 1, this.playerPosition.y + 1)
+        );
+
+        if (nextHallDown.type === HallType.EMPTY) return;
+
         this.playerPosition.y = Math.min(
           this.dungeon.halls.length - 1,
           this.playerPosition.y + 1
         );
+
         break;
       case Direction.RIGHT:
+        const nextHallRight = this.dungeon.getHall(
+          Math.min(this.dungeon.halls[0].length - 1, this.playerPosition.x + 1),
+          this.playerPosition.y
+        );
+
+        if (nextHallRight.type === HallType.EMPTY) return;
+
         this.playerPosition.x = Math.min(
           this.dungeon.halls[0].length - 1,
           this.playerPosition.x + 1
         );
+
         break;
       case Direction.LEFT:
+        const nextHallLeft = this.dungeon.getHall(
+          Math.max(0, this.playerPosition.x - 1),
+          this.playerPosition.y
+        );
+
+        if (nextHallLeft.type === HallType.EMPTY) return;
+
         this.playerPosition.x = Math.max(0, this.playerPosition.x - 1);
+
         break;
     }
 
     this._play();
   }
 
-  // TODO implementar turnos
+  // TODO! implementar turnos
   private _play(): void {
     let currentHall =
       this.dungeon.halls[this.playerPosition.y][this.playerPosition.x];
@@ -313,12 +356,51 @@ export class GameSystem {
       console.log("Batalla contra: ", currentHall.enemy.name);
     }
 
-    // TODO: Implementar el resto de acciones
+    // TODO! Implementar el resto de acciones
   }
 }
 
-const game = new GameSystem(player);
-game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
-game.movePlayer(Direction.RIGHT);
-
 //console.log(game.dungeon.saveDungeon());
+
+(async () => {
+  let jugando = true;
+
+  const game = new GameSystem(player);
+  game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+
+  while (jugando) {
+    // mover presionando una tecla
+    const key = keyIn("", {
+      hideEchoBack: true,
+      mask: "",
+    });
+    console.clear();
+
+    switch (key) {
+      case "w":
+        game.movePlayer(Direction.UP);
+        game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+        break;
+      case "s":
+        game.movePlayer(Direction.DOWN);
+        game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+        break;
+      case "a":
+        game.movePlayer(Direction.LEFT);
+        game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+        break;
+      case "d":
+        game.movePlayer(Direction.RIGHT);
+        game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+        break;
+      case "q":
+        jugando = false;
+        break;
+      default:
+        game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+        break;
+    }
+  }
+
+  console.log("GAME OVER");
+})();

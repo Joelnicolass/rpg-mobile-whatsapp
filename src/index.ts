@@ -296,7 +296,9 @@ export class GameSystem {
   }
 
   // TODO refactorizar
-  movePlayer(direction: Direction): void {
+  movePlayer(direction: Direction): HallType {
+    const currentHall = this._currentHall();
+
     switch (direction) {
       case Direction.UP:
         const nextHall = this._dungeon.getHall(
@@ -304,7 +306,7 @@ export class GameSystem {
           Math.max(0, this._playerPosition.y - 1)
         );
 
-        if (nextHall.type === HallType.EMPTY) return;
+        if (nextHall.type === HallType.EMPTY) return currentHall.type;
 
         this._playerPosition.y = Math.max(0, this._playerPosition.y - 1);
 
@@ -315,7 +317,7 @@ export class GameSystem {
           Math.min(this._dungeon.halls.length - 1, this._playerPosition.y + 1)
         );
 
-        if (nextHallDown.type === HallType.EMPTY) return;
+        if (nextHallDown.type === HallType.EMPTY) return currentHall.type;
 
         this._playerPosition.y = Math.min(
           this._dungeon.halls.length - 1,
@@ -332,7 +334,7 @@ export class GameSystem {
           this._playerPosition.y
         );
 
-        if (nextHallRight.type === HallType.EMPTY) return;
+        if (nextHallRight.type === HallType.EMPTY) return currentHall.type;
 
         this._playerPosition.x = Math.min(
           this._dungeon.halls[0].length - 1,
@@ -346,33 +348,28 @@ export class GameSystem {
           this._playerPosition.y
         );
 
-        if (nextHallLeft.type === HallType.EMPTY) return;
+        if (nextHallLeft.type === HallType.EMPTY) return currentHall.type;
 
         this._playerPosition.x = Math.max(0, this._playerPosition.x - 1);
 
         break;
     }
 
-    this._play();
+    return this._currentHall().type;
   }
 
   // TODO! implementar turnos
-  private _play(): void {
-    let currentHall =
-      this._dungeon.halls[this._playerPosition.y][this._playerPosition.x];
-
-    if (currentHall.type === HallType.ENEMY && currentHall.enemy) {
-      let bs = new BattleSystem(this._player, currentHall.enemy);
-
-      console.log("Batalla contra: ", currentHall.enemy.name);
-    }
-
-    // TODO! Implementar el resto de acciones
+  private _currentHall(): Hall {
+    return this._dungeon.getHall(
+      this._playerPosition.x,
+      this._playerPosition.y
+    );
   }
 }
 
 //console.log(game.dungeon.saveDungeon());
 
+// TEST DE JUEGO EN CONSOLA
 (async () => {
   let jugando = true;
 
@@ -387,21 +384,28 @@ export class GameSystem {
     });
     console.clear();
 
+    let hallType;
+
     switch (key) {
       case "w":
-        game.movePlayer(Direction.UP);
+        hallType = game.movePlayer(Direction.UP);
+        console.log("Hall type: ", hallType);
         game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+
         break;
       case "s":
-        game.movePlayer(Direction.DOWN);
+        hallType = game.movePlayer(Direction.DOWN);
+
         game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
         break;
       case "a":
-        game.movePlayer(Direction.LEFT);
+        hallType = game.movePlayer(Direction.LEFT);
+
         game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
         break;
       case "d":
-        game.movePlayer(Direction.RIGHT);
+        hallType = game.movePlayer(Direction.RIGHT);
+
         game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
         break;
       case "q":

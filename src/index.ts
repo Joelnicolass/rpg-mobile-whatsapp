@@ -276,68 +276,79 @@ export enum Direction {
 }
 
 export class GameSystem {
-  player: Character;
-  dungeon: Dungeon;
-  playerPosition: { x: number; y: number };
+  private _player: Character;
+  private _dungeon: Dungeon;
+  private _playerPosition: { x: number; y: number };
 
   constructor(jugador: Character) {
-    this.player = jugador;
-    this.dungeon = new Dungeon();
-    this.dungeon.init(intInRange(12, 30));
-    this.playerPosition = { x: 0, y: 0 };
+    this._player = jugador;
+    this._dungeon = new Dungeon();
+    this._dungeon.init(intInRange(12, 30));
+    this._playerPosition = { x: 0, y: 0 };
+  }
+
+  get dungeon(): Dungeon {
+    return this._dungeon;
+  }
+
+  get playerPosition(): { x: number; y: number } {
+    return this._playerPosition;
   }
 
   // TODO refactorizar
   movePlayer(direction: Direction): void {
     switch (direction) {
       case Direction.UP:
-        const nextHall = this.dungeon.getHall(
-          this.playerPosition.x,
-          Math.max(0, this.playerPosition.y - 1)
+        const nextHall = this._dungeon.getHall(
+          this._playerPosition.x,
+          Math.max(0, this._playerPosition.y - 1)
         );
 
         if (nextHall.type === HallType.EMPTY) return;
 
-        this.playerPosition.y = Math.max(0, this.playerPosition.y - 1);
+        this._playerPosition.y = Math.max(0, this._playerPosition.y - 1);
 
         break;
       case Direction.DOWN:
-        const nextHallDown = this.dungeon.getHall(
-          this.playerPosition.x,
-          Math.min(this.dungeon.halls.length - 1, this.playerPosition.y + 1)
+        const nextHallDown = this._dungeon.getHall(
+          this._playerPosition.x,
+          Math.min(this._dungeon.halls.length - 1, this._playerPosition.y + 1)
         );
 
         if (nextHallDown.type === HallType.EMPTY) return;
 
-        this.playerPosition.y = Math.min(
-          this.dungeon.halls.length - 1,
-          this.playerPosition.y + 1
+        this._playerPosition.y = Math.min(
+          this._dungeon.halls.length - 1,
+          this._playerPosition.y + 1
         );
 
         break;
       case Direction.RIGHT:
-        const nextHallRight = this.dungeon.getHall(
-          Math.min(this.dungeon.halls[0].length - 1, this.playerPosition.x + 1),
-          this.playerPosition.y
+        const nextHallRight = this._dungeon.getHall(
+          Math.min(
+            this._dungeon.halls[0].length - 1,
+            this._playerPosition.x + 1
+          ),
+          this._playerPosition.y
         );
 
         if (nextHallRight.type === HallType.EMPTY) return;
 
-        this.playerPosition.x = Math.min(
-          this.dungeon.halls[0].length - 1,
-          this.playerPosition.x + 1
+        this._playerPosition.x = Math.min(
+          this._dungeon.halls[0].length - 1,
+          this._playerPosition.x + 1
         );
 
         break;
       case Direction.LEFT:
-        const nextHallLeft = this.dungeon.getHall(
-          Math.max(0, this.playerPosition.x - 1),
-          this.playerPosition.y
+        const nextHallLeft = this._dungeon.getHall(
+          Math.max(0, this._playerPosition.x - 1),
+          this._playerPosition.y
         );
 
         if (nextHallLeft.type === HallType.EMPTY) return;
 
-        this.playerPosition.x = Math.max(0, this.playerPosition.x - 1);
+        this._playerPosition.x = Math.max(0, this._playerPosition.x - 1);
 
         break;
     }
@@ -348,10 +359,10 @@ export class GameSystem {
   // TODO! implementar turnos
   private _play(): void {
     let currentHall =
-      this.dungeon.halls[this.playerPosition.y][this.playerPosition.x];
+      this._dungeon.halls[this._playerPosition.y][this._playerPosition.x];
 
     if (currentHall.type === HallType.ENEMY && currentHall.enemy) {
-      let bs = new BattleSystem(this.player, currentHall.enemy);
+      let bs = new BattleSystem(this._player, currentHall.enemy);
 
       console.log("Batalla contra: ", currentHall.enemy.name);
     }

@@ -9,6 +9,7 @@ import { createWhatsappServer } from "./features/game/presentation/whatsapp_inte
 import { initFlow } from "./features/game/presentation/whatsapp_integration/flows/init_flow";
 import { BattleSystem } from "./features/game/domain/entities/battle_system/battle_system.entity";
 import {
+  intInRange,
   namesTribesCharacters,
   randomItemInArray,
 } from "./features/game/domain/utils";
@@ -82,31 +83,91 @@ export class Dungeon {
   }
 
   private _initDungeon(size: number): Hall[][] {
-    return Array.from({ length: size }, () =>
-      Array.from({ length: size }, () => new Hall())
+    const halls = Array.from({ length: size }, () =>
+      Array.from({ length: size }, () => new Hall(HallType.EMPTY))
     );
+
+    // Crear el inicio
+    halls[0][0] = new Hall(HallType.WAY);
+
+    // Crear un camino principal
+    this.createMainPath(halls, size, 0, 0);
+
+    return halls;
+  }
+
+  private createMainPath(
+    halls: Hall[][],
+    size: number,
+    initialX: number,
+    initialY: number
+  ): void {
+    let currentX = initialX;
+    let currentY = initialY;
+    let previousX = initialX;
+    let previousY = initialY;
+
+    // Crear un camino lineal
+    for (let i = 0; i < size * 10; i++) {
+      halls[currentY][currentX].type = HallType.WAY;
+
+      previousX = currentX;
+      previousY = currentY;
+      currentX += Math.random() > 0.5 ? 1 : -1;
+      currentY += Math.random() > 0.5 ? 1 : -1;
+
+      // si se mueve en diagonal, rellenar el espacio
+      if (previousX < currentX) {
+        const isValid = currentX < size && currentY < size;
+
+        if (isValid) halls[previousY][previousX + 1].type = HallType.WAY;
+      }
+
+      if (previousX > currentX) {
+        const isValid = currentX >= 0 && currentY < size;
+
+        if (isValid) halls[previousY][previousX - 1].type = HallType.WAY;
+      }
+
+      // Si se sale del mapa, volver a entrar
+      if (currentX >= size) {
+        currentX = size - 1;
+        currentY = previousY;
+      }
+      if (currentY < 0) currentY = 0;
+
+      if (currentY >= size) {
+        currentY = size - 10;
+        currentX = previousX;
+      }
+      if (currentX < 0) currentX = 0;
+    }
   }
 
   private _generateHalls(): void {
-    for (let i = 0; i < this.halls.length; i++) {
-      for (let j = 0; j < this.halls[i].length; j++) {
-        if (Math.random() < this._rateEnemy) {
-          // la primer sala no puede ser de tipo ENEMIGO
-          if (i === 0 && j === 0) continue;
+    // generar enemigos y tesoros en las salas de tipo WAY
+    const coords = this._getCoordTo(HallType.WAY);
+    const randomCoords = coords.sort(() => Math.random() - 0.5);
 
-          this.halls[i][j] = new Hall(HallType.ENEMY);
-        } else if (Math.random() < this._rateTreasure) {
-          this.halls[i][j] = new Hall(HallType.TREASURE);
-        }
-      }
+    const totalEnemies = Math.floor(coords.length * this._rateEnemy);
+
+    for (let i = 0; i < totalEnemies; i++) {
+      const coord = randomCoords[i];
+      this.halls[coord.y][coord.x] = new Hall(HallType.ENEMY);
+    }
+
+    const totalTreasures = Math.floor(coords.length * this._rateTreasure);
+
+    for (let i = 0; i < totalTreasures; i++) {
+      const coord = randomCoords[i];
+      this.halls[coord.y][coord.x] = new Hall(HallType.TREASURE);
     }
   }
 
   private _addDoorToNextHall(): void {
-    const randomX = Math.floor(Math.random() * this.halls[0].length);
-    const randomY = Math.floor(Math.random() * this.halls.length);
+    const randomWay = randomItemInArray(this._getCoordTo(HallType.WAY));
 
-    this.halls[randomY][randomX] = new Hall(HallType.EXIT);
+    this.halls[randomWay.y][randomWay.x] = new Hall(HallType.EXIT);
   }
 
   __SHOWINCONSOLE__(
@@ -135,7 +196,7 @@ export class Dungeon {
   private caracterParaSala(sala: Hall): string {
     switch (sala.type) {
       case HallType.EMPTY:
-        return " ";
+        return "  ";
       case HallType.ENEMY:
         return "👹";
       case HallType.TREASURE:
@@ -212,7 +273,7 @@ export class GameSystem {
   constructor(jugador: Character) {
     this.player = jugador;
     this.dungeon = new Dungeon();
-    this.dungeon.init(10);
+    this.dungeon.init(intInRange(12, 30));
     this.playerPosition = { x: 0, y: 0 };
   }
 
@@ -260,4 +321,4 @@ const game = new GameSystem(player);
 game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
 game.movePlayer(Direction.RIGHT);
 
-console.log(game.dungeon.saveDungeon());
+//console.log(game.dungeon.saveDungeon());

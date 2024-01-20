@@ -62,7 +62,6 @@ export class Hall {
   private _type: HallType;
   private _enemy: Character | null;
   private _treasure: any | null; // TODO implementar tesoros
-  private _show: boolean = false;
 
   constructor(tipo: HallType = HallType.WAY) {
     this._type = tipo;
@@ -85,14 +84,6 @@ export class Hall {
   get enemy(): Character | null {
     return this._enemy;
   }
-
-  get show(): boolean {
-    return this._show;
-  }
-
-  hide(): void {
-    this._show = false;
-  }
 }
 
 export class DrawConsole {
@@ -114,6 +105,15 @@ export class DrawConsole {
       for (let x = 0; x < columns; x++) {
         if (playerPosition.x === x && playerPosition.y === y) {
           row += "🧍🏻‍♂️";
+          continue;
+        }
+
+        // si esta mas lejano a 3 casillas, no mostrar
+        if (
+          Math.abs(playerPosition.x - x) > 3 ||
+          Math.abs(playerPosition.y - y) > 3
+        ) {
+          row += ". ";
           continue;
         }
 
@@ -316,7 +316,7 @@ export class GameSystem {
   constructor(jugador: Character) {
     this._player = jugador;
     this._dungeon = new Dungeon();
-    this._dungeon.init(intInRange(12, 30));
+    this._dungeon.init(intInRange(21, 40));
     this._playerPosition = { x: 0, y: 0 };
   }
 

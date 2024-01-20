@@ -88,7 +88,7 @@ export abstract class SkillBase implements UsableInPlayerAndEnemy {
   }
 
   public use(player: Character, targets: Character[]) {
-    if (!this.canUse(player)) return;
+    if (!this.canUse(player)) throw new Error("Not enough mana");
     this.useMana(player);
 
     if (this._type.includes(SkillType.SPECIAL_EFFECT_PLAYER)) {

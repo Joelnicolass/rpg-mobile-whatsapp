@@ -59,18 +59,90 @@ export enum HallType {
 }
 
 export class Hall {
-  type: HallType;
-  enemy: Character | null;
-  treasure: any | null; // TODO implementar tesoros
+  private _type: HallType;
+  private _enemy: Character | null;
+  private _treasure: any | null; // TODO implementar tesoros
+  private _show: boolean = false;
 
   constructor(tipo: HallType = HallType.WAY) {
-    this.type = tipo;
-    this.enemy =
+    this._type = tipo;
+    this._enemy =
       tipo === HallType.ENEMY
         ? CharacterFactory.createRandomCharacter(
             randomItemInArray(namesTribesCharacters)
           )
         : null;
+  }
+
+  get type(): HallType {
+    return this._type;
+  }
+
+  set type(tipo: HallType) {
+    this._type = tipo;
+  }
+
+  get enemy(): Character | null {
+    return this._enemy;
+  }
+
+  get show(): boolean {
+    return this._show;
+  }
+
+  hide(): void {
+    this._show = false;
+  }
+}
+
+export class DrawConsole {
+  private halls: Hall[][] = [];
+
+  constructor(halls: Hall[][]) {
+    this.halls = halls;
+  }
+
+  __SHOWINCONSOLE__(
+    playerPosition: { x: number; y: number } = { x: 0, y: 0 }
+  ): void {
+    const rows = this.halls.length;
+    const columns = this.halls[0].length;
+    let screen = "";
+
+    for (let y = 0; y < rows; y++) {
+      let row = "";
+      for (let x = 0; x < columns; x++) {
+        if (playerPosition.x === x && playerPosition.y === y) {
+          row += "🧍🏻‍♂️";
+          continue;
+        }
+
+        row += this._screenSymbol(this.halls[y][x]);
+      }
+      screen += row + "\n";
+    }
+
+    console.log("\x1b[36m%s\x1b[0m", "DUNGEON");
+    console.log("\x1b[36m%s\x1b[0m", "-------");
+    console.log(screen);
+    console.log("\x1b[36m%s\x1b[0m", "-------");
+  }
+
+  private _screenSymbol(sala: Hall): string {
+    switch (sala.type) {
+      case HallType.EMPTY:
+        return "  ";
+      case HallType.ENEMY:
+        return "👹";
+      case HallType.TREASURE:
+        return "💰";
+      case HallType.WAY:
+        return "👣";
+      case HallType.EXIT:
+        return "🚪";
+      default:
+        return " ";
+    }
   }
 }
 
@@ -155,6 +227,8 @@ export class Dungeon {
     const totalEnemies = Math.floor(coords.length * this._rateEnemy);
 
     for (let i = 0; i < totalEnemies; i++) {
+      if (randomCoords[i].x === 0 && randomCoords[i].y === 0) continue;
+
       const coord = randomCoords[i];
       this.halls[coord.y][coord.x] = new Hall(HallType.ENEMY);
     }
@@ -162,6 +236,8 @@ export class Dungeon {
     const totalTreasures = Math.floor(coords.length * this._rateTreasure);
 
     for (let i = 0; i < totalTreasures; i++) {
+      if (randomCoords[i].x === 0 && randomCoords[i].y === 0) continue;
+
       const coord = randomCoords[i];
       this.halls[coord.y][coord.x] = new Hall(HallType.TREASURE);
     }
@@ -171,49 +247,6 @@ export class Dungeon {
     const randomWay = randomItemInArray(this._getCoordTo(HallType.WAY));
 
     this.halls[randomWay.y][randomWay.x] = new Hall(HallType.EXIT);
-  }
-
-  __SHOWINCONSOLE__(
-    playerPosition: { x: number; y: number } = { x: 0, y: 0 }
-  ): void {
-    const rows = this.halls.length;
-    const columns = this.halls[0].length;
-    let screen = "";
-
-    for (let y = 0; y < rows; y++) {
-      let row = "";
-      for (let x = 0; x < columns; x++) {
-        if (playerPosition.x === x && playerPosition.y === y) {
-          row += "🧍🏻‍♂️";
-          continue;
-        }
-
-        row += this._screenSymbol(this.halls[y][x]);
-      }
-      screen += row + "\n";
-    }
-
-    console.log("\x1b[36m%s\x1b[0m", "DUNGEON");
-    console.log("\x1b[36m%s\x1b[0m", "-------");
-    console.log(screen);
-    console.log("\x1b[36m%s\x1b[0m", "-------");
-  }
-
-  private _screenSymbol(sala: Hall): string {
-    switch (sala.type) {
-      case HallType.EMPTY:
-        return "  ";
-      case HallType.ENEMY:
-        return "👹";
-      case HallType.TREASURE:
-        return "💰";
-      case HallType.WAY:
-        return "👣";
-      case HallType.EXIT:
-        return "🚪";
-      default:
-        return " ";
-    }
   }
 
   private _getCoordTo(hallType: HallType): { x: number; y: number }[] {
@@ -295,8 +328,12 @@ export class GameSystem {
     return this._playerPosition;
   }
 
+  get player(): Character {
+    return this._player;
+  }
+
   // TODO refactorizar
-  movePlayer(direction: Direction): HallType {
+  movePlayer(direction: Direction): Hall {
     const currentHall = this._currentHall();
 
     switch (direction) {
@@ -306,7 +343,7 @@ export class GameSystem {
           Math.max(0, this._playerPosition.y - 1)
         );
 
-        if (nextHall.type === HallType.EMPTY) return currentHall.type;
+        if (nextHall.type === HallType.EMPTY) return currentHall;
 
         this._playerPosition.y = Math.max(0, this._playerPosition.y - 1);
 
@@ -317,7 +354,7 @@ export class GameSystem {
           Math.min(this._dungeon.halls.length - 1, this._playerPosition.y + 1)
         );
 
-        if (nextHallDown.type === HallType.EMPTY) return currentHall.type;
+        if (nextHallDown.type === HallType.EMPTY) return currentHall;
 
         this._playerPosition.y = Math.min(
           this._dungeon.halls.length - 1,
@@ -334,7 +371,7 @@ export class GameSystem {
           this._playerPosition.y
         );
 
-        if (nextHallRight.type === HallType.EMPTY) return currentHall.type;
+        if (nextHallRight.type === HallType.EMPTY) return currentHall;
 
         this._playerPosition.x = Math.min(
           this._dungeon.halls[0].length - 1,
@@ -348,17 +385,16 @@ export class GameSystem {
           this._playerPosition.y
         );
 
-        if (nextHallLeft.type === HallType.EMPTY) return currentHall.type;
+        if (nextHallLeft.type === HallType.EMPTY) return currentHall;
 
         this._playerPosition.x = Math.max(0, this._playerPosition.x - 1);
 
         break;
     }
 
-    return this._currentHall().type;
+    return this._currentHall();
   }
 
-  // TODO! implementar turnos
   private _currentHall(): Hall {
     return this._dungeon.getHall(
       this._playerPosition.x,
@@ -369,12 +405,90 @@ export class GameSystem {
 
 //console.log(game.dungeon.saveDungeon());
 
-// TEST DE JUEGO EN CONSOLA
+// ------------------------------ TEST DE CONSOLA
+
+// TEST DE BATALLA
+
+const game = new GameSystem(player);
+const draw = new DrawConsole(game.dungeon.halls);
+
+const shouldInitBattle = (hall: Hall) => hall.type === HallType.ENEMY;
+
+const battle = async (game: GameSystem, hall: Hall) => {
+  let inBattle = true;
+  const player = game.player;
+  const enemy = hall.enemy!;
+
+  draw.__SHOWINCONSOLE__(game.playerPosition);
+  showStats(player, enemy);
+
+  const battleSystem = new BattleSystem(player, enemy);
+
+  while (inBattle) {
+    const key = keyIn("", {
+      hideEchoBack: true,
+      mask: "",
+    });
+
+    const enemySkill = enemy.skills[intInRange(0, enemy.skills.length - 1)];
+
+    switch (key) {
+      case "1":
+        console.clear();
+
+        const playerSkill = player.skills.length > 0 ? player.skills[0] : null;
+
+        if (!playerSkill) {
+          console.log("Player has no skills");
+          break;
+        }
+
+        try {
+          console.log("Player uses: ", playerSkill.name);
+          battleSystem.executeTurn(player.skills[0].name, true);
+        } catch (error) {
+          console.log((error as Error).message);
+        }
+
+        try {
+          console.log("Enemy uses: ", enemySkill.name);
+          battleSystem.executeTurn(enemySkill.name, false);
+        } catch (error) {
+          console.log((error as Error).message);
+        }
+
+        draw.__SHOWINCONSOLE__(game.playerPosition);
+        showStats(player, enemy);
+
+        break;
+
+      default:
+        console.clear();
+
+        draw.__SHOWINCONSOLE__(game.playerPosition);
+        showStats(player, enemy);
+        break;
+    }
+
+    if (battleSystem.isBattleOver()) {
+      console.clear();
+      inBattle = false;
+
+      if (!player.isDead()) {
+        hall.type = HallType.WAY;
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+};
+
+// TEST DE MOVIMIENTO
 (async () => {
   let jugando = true;
 
-  const game = new GameSystem(player);
-  game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+  draw.__SHOWINCONSOLE__(game.playerPosition);
 
   while (jugando) {
     // mover presionando una tecla
@@ -384,35 +498,55 @@ export class GameSystem {
     });
     console.clear();
 
-    let hallType;
+    let hall;
+    let battleResult;
 
     switch (key) {
       case "w":
-        hallType = game.movePlayer(Direction.UP);
-        console.log("Hall type: ", hallType);
-        game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+        hall = game.movePlayer(Direction.UP);
+
+        if (shouldInitBattle(hall)) {
+          battleResult = await battle(game, hall);
+        }
+
+        draw.__SHOWINCONSOLE__(game.playerPosition);
 
         break;
       case "s":
-        hallType = game.movePlayer(Direction.DOWN);
+        hall = game.movePlayer(Direction.DOWN);
 
-        game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+        if (shouldInitBattle(hall)) {
+          battleResult = await battle(game, hall);
+        }
+
+        draw.__SHOWINCONSOLE__(game.playerPosition);
+        console.log(battleResult);
         break;
       case "a":
-        hallType = game.movePlayer(Direction.LEFT);
+        hall = game.movePlayer(Direction.LEFT);
 
-        game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+        if (shouldInitBattle(hall)) {
+          battleResult = await battle(game, hall);
+        }
+
+        draw.__SHOWINCONSOLE__(game.playerPosition);
+        console.log(battleResult);
         break;
       case "d":
-        hallType = game.movePlayer(Direction.RIGHT);
+        hall = game.movePlayer(Direction.RIGHT);
 
-        game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+        if (shouldInitBattle(hall)) {
+          battleResult = await battle(game, hall);
+        }
+
+        draw.__SHOWINCONSOLE__(game.playerPosition);
+        console.log(battleResult);
         break;
       case "q":
         jugando = false;
         break;
       default:
-        game.dungeon.__SHOWINCONSOLE__(game.playerPosition);
+        draw.__SHOWINCONSOLE__(game.playerPosition);
         break;
     }
   }

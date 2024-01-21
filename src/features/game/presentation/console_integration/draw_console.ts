@@ -2,17 +2,35 @@ import { Hall } from "../../domain/entities/hall/hall.entity";
 import { HallType } from "../../domain/types";
 
 export class DrawConsole {
-  private halls: Hall[][] = [];
+  private _halls: Hall[][] = [];
+  private _rateVisibility = 3;
+  private _fog = true;
 
   constructor(halls: Hall[][]) {
-    this.halls = halls;
+    this._halls = halls;
+  }
+
+  get rateVisibility(): number {
+    return this._rateVisibility;
+  }
+
+  set rateVisibility(value: number) {
+    this._rateVisibility = value;
+  }
+
+  showFog() {
+    this._fog = true;
+  }
+
+  hideFog() {
+    this._fog = false;
   }
 
   __SHOWINCONSOLE__(
     playerPosition: { x: number; y: number } = { x: 0, y: 0 }
   ): void {
-    const rows = this.halls.length;
-    const columns = this.halls[0].length;
+    const rows = this._halls.length;
+    const columns = this._halls[0].length;
     let screen = "";
 
     for (let y = 0; y < rows; y++) {
@@ -25,14 +43,15 @@ export class DrawConsole {
 
         // si esta mas lejano a 3 casillas, no mostrar
         if (
-          Math.abs(playerPosition.x - x) > 3 ||
-          Math.abs(playerPosition.y - y) > 3
+          this._fog &&
+          (Math.abs(playerPosition.x - x) > this._rateVisibility ||
+            Math.abs(playerPosition.y - y) > this._rateVisibility)
         ) {
-          row += ". ";
+          row += "  ";
           continue;
         }
 
-        row += this._screenSymbol(this.halls[y][x]);
+        row += this._screenSymbol(this._halls[y][x]);
       }
       screen += row + "\n";
     }

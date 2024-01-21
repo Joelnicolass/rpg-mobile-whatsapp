@@ -47,24 +47,18 @@ const showStats = (player: Character, enemy: Character) => {
 };
 
 export const player = CharacterFactory.createWizard("Nico", true);
-console.log("ataques: ", player.skills);
-
-//console.log(game.dungeon.saveDungeon());
-
-// ------------------------------ TEST DE CONSOLA
-
-// TEST DE BATALLA
+console.log(player.skills.map((s) => `${s.name} ${s.manaCost} - ${s.force}`));
 
 const saved =
   '{"name":"Nico","type":["wizard"],"attributes":[{"name":"health","value":100,"maxValue":100},{"name":"mana","value":300,"maxValue":300},{"name":"attack","value":30,"maxValue":30},{"name":"defense","value":5,"maxValue":5}],"experienceSystem":{"experience":0,"level":10},"skills":[{"name":"Pureza de Santa Cruz","type":["generic","special_effect_player"],"force":81,"effects":[{"name":"HP","attributes":["health"],"value":18,"duration":1,"__class__":"InmediateHPEffect"}],"manaCost":0,"admittedCharacterTypes":["warrior","wizard","archer"],"__class__":"RandomTribesAttack"},{"name":"Vuelo del Cóndor","type":["generic"],"force":180,"effects":[],"manaCost":0,"admittedCharacterTypes":["warrior","wizard","archer"],"__class__":"RandomTribesAttack"}],"activeEffects":[]}';
 
-const game = GameSystem.load(JSON.parse(saved));
+const game = new GameSystem(player);
 const draw = new DrawConsole(game.dungeon.halls);
 
 console.log("GAME STARTED");
 console.log("------------");
 
-/* const shouldInitBattle = (hall: Hall) => hall.type === HallType.ENEMY;
+const shouldInitBattle = (hall: Hall) => hall.type === HallType.ENEMY;
 
 const battle = async (game: GameSystem, hall: Hall) => {
   let inBattle = true;
@@ -134,11 +128,11 @@ const battle = async (game: GameSystem, hall: Hall) => {
       }
     }
   }
-}; */
+};
 
 // TEST DE MOVIMIENTO
 export const playInConsole = async () => {
-  /* let jugando = true;
+  let jugando = true;
 
   draw.__SHOWINCONSOLE__(game.playerPosition);
 
@@ -203,5 +197,5 @@ export const playInConsole = async () => {
     }
   }
 
-  console.log("GAME OVER"); */
+  console.log("GAME OVER");
 };

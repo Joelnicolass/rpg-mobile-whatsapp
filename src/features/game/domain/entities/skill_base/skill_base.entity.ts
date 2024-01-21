@@ -1,6 +1,7 @@
 import {
   AttributeType,
   CharacterType,
+  Saveable,
   SkillType,
   UsableInPlayerAndEnemy,
 } from "../../types";
@@ -14,7 +15,7 @@ import {
   PoisonEffect,
 } from "../effect_base/effect_base.entity";
 
-export abstract class SkillBase implements UsableInPlayerAndEnemy {
+export abstract class SkillBase implements UsableInPlayerAndEnemy, Saveable {
   private _name: string;
   private _type: SkillType[];
   private _force: number;
@@ -199,7 +200,7 @@ export class Fireball extends SkillBase {
       type: [SkillType.GENERIC, SkillType.SPECIAL_EFFECT_ENEMY],
       force: intInRange(20, 100),
       admittedCharacterTypes: [CharacterType.WIZARD],
-      effects: [new BurnEffect(5, intInRange(1, 5))],
+      effects: [new BurnEffect(5, intInRange(1, 5), intInRange(1, 100))],
     });
   }
 }
@@ -211,7 +212,7 @@ export class Heal extends SkillBase {
       type: [SkillType.SPECIAL_EFFECT_PLAYER],
       force: 0,
       manaCost: 40,
-      effects: [new InmediateHPEffect(50)],
+      effects: [new InmediateHPEffect(50, 1, 100)],
       admittedCharacterTypes: [CharacterType.WIZARD],
     });
   }
@@ -237,15 +238,27 @@ export class RandomTribesAttack extends SkillBase {
     const _mapEffect: Record<number, { effect: EffectBase; type: SkillType }> =
       {
         1: {
-          effect: new BurnEffect(_rateEffectValue, _rateEffectDuration),
+          effect: new BurnEffect(
+            _rateEffectValue,
+            _rateEffectDuration,
+            intInRange(10, 100)
+          ),
           type: SkillType.SPECIAL_EFFECT_ENEMY,
         },
         2: {
-          effect: new PoisonEffect(_rateEffectValue, _rateEffectDuration),
+          effect: new PoisonEffect(
+            _rateEffectValue,
+            _rateEffectDuration,
+            intInRange(10, 50)
+          ),
           type: SkillType.SPECIAL_EFFECT_ENEMY,
         },
         3: {
-          effect: new CurseEffect(_rateEffectValue, _rateEffectDuration),
+          effect: new CurseEffect(
+            _rateEffectValue,
+            _rateEffectDuration,
+            intInRange(10, 20)
+          ),
           type: SkillType.SPECIAL_EFFECT_ENEMY,
         },
         4: {
@@ -261,8 +274,9 @@ export class RandomTribesAttack extends SkillBase {
     super({
       name: namesTribesSkills[intInRange(0, namesTribesSkills.length - 1)],
       type: [SkillType.GENERIC, ..._type],
-      force: intInRange(0, 200),
-      effects: _effects.map((e) => e.effect),
+      force: initialSkill ? 10 : intInRange(0, 200),
+      effects: initialSkill ? [] : _effects.map((e) => e.effect),
+      manaCost: initialSkill ? 0 : intInRange(0, 100),
     });
   }
 }

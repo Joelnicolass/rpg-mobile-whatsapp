@@ -54,5 +54,4 @@ export enum Direction {
 // interfaz para guardar y cargar el juego
 export interface Saveable {
   save(): Record<string, unknown>;
-  load(data: Record<string, unknown>): void;
 }

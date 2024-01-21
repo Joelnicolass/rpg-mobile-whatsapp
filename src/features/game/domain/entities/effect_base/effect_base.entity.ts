@@ -1,24 +1,28 @@
-import { AttributeType, Effect, EffectType } from "../../types";
+import { AttributeType, Effect, EffectType, Saveable } from "../../types";
+import { intInRange } from "../../utils";
 import { Attribute } from "../attribute/attribute.entity";
 import { Character } from "../character/character.entity";
 
 // CLASE PARA LOS EFECTOS
-export abstract class EffectBase implements Effect {
+export abstract class EffectBase implements Effect, Saveable {
   private _name: string;
   private _attributesTypes: AttributeType[];
   private _value: number;
   private _duration: number;
+  private _probability: number;
 
   constructor(
     name: string,
     attributes: AttributeType[],
     value: number,
-    duration: number
+    duration: number,
+    probability?: number
   ) {
     this._name = name;
     this._attributesTypes = attributes;
     this._value = value;
     this._duration = duration;
+    this._probability = probability || 100;
   }
 
   get name(): string {
@@ -39,11 +43,18 @@ export abstract class EffectBase implements Effect {
     return this._duration;
   }
 
+  get probability(): number {
+    return this._probability;
+  }
+
   protected decreaseDuration(): void {
     this._duration--;
   }
 
   protected applyAttributeChange(target: Character): void {
+    const random = intInRange(0, 100);
+    if (random > this._probability) return;
+
     this._attributesTypes.forEach((type) => {
       const attribute = target.getAttribute(type);
       attribute.applyChange(this._value);
@@ -66,6 +77,7 @@ export abstract class EffectBase implements Effect {
       attributes: this._attributesTypes,
       value: this._value,
       duration: this._duration,
+      probability: this._probability,
       __class__: this.constructor.name,
     };
   }
@@ -75,16 +87,17 @@ export abstract class EffectBase implements Effect {
     const attributes = data.attributes as AttributeType[];
     const value = data.value as number;
     const duration = data.duration as number;
+    const probability = data.probability as number;
 
     switch (data.__class__) {
       case "InmediateHPEffect":
-        return new InmediateHPEffect(value);
+        return new InmediateHPEffect(value, duration, probability);
       case "BurnEffect":
-        return new BurnEffect(value, duration);
+        return new BurnEffect(value, duration, probability);
       case "PoisonEffect":
-        return new PoisonEffect(value, duration);
+        return new PoisonEffect(value, duration, probability);
       case "CurseEffect":
-        return new CurseEffect(value, duration);
+        return new CurseEffect(value, duration, probability);
       default:
         throw new Error("Effect not found");
     }
@@ -93,35 +106,37 @@ export abstract class EffectBase implements Effect {
 
 // EFECTOS - IMPLEMENTACIONES
 export class InmediateHPEffect extends EffectBase {
-  constructor(value: number) {
-    super(EffectType.HP, [AttributeType.HP], value, 1);
+  constructor(value: number, duration: number = 1, probability: number = 100) {
+    super(EffectType.HP, [AttributeType.HP], value, duration, probability);
   }
 }
 
 export class BurnEffect extends EffectBase {
-  constructor(value: number, duration: number) {
-    super(EffectType.BURN, [AttributeType.HP], value, duration);
+  constructor(value: number, duration: number, probability: number) {
+    super(EffectType.BURN, [AttributeType.HP], value, duration, probability);
   }
 }
 
 export class PoisonEffect extends EffectBase {
-  constructor(value: number, duration: number) {
+  constructor(value: number, duration: number, probability: number) {
     super(
       EffectType.POISON,
       [AttributeType.HP, AttributeType.MANA],
       value,
-      duration
+      duration,
+      probability
     );
   }
 }
 
 export class CurseEffect extends EffectBase {
-  constructor(value: number, duration: number) {
+  constructor(value: number, duration: number, probability: number) {
     super(
       EffectType.CURSE,
       [AttributeType.ATK, AttributeType.MANA, AttributeType.HP],
       value,
-      duration
+      duration,
+      probability
     );
   }
 }

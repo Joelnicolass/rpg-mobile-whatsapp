@@ -1,11 +1,11 @@
-import { Direction, HallType } from "../../types";
+import { Direction, HallType, Saveable } from "../../types";
 import { intInRange } from "../../utils";
 import { Character } from "../character/character.entity";
 import { Dungeon } from "../dungeon/dungeon.entity";
 import { Hall } from "../hall/hall.entity";
 import { ExperienceSystem } from "../experience_system/experience_system_base.entity";
 
-export class GameSystem {
+export class GameSystem implements Saveable {
   private _player: Character;
   private _dungeon: Dungeon;
   private _playerPosition: { x: number; y: number };

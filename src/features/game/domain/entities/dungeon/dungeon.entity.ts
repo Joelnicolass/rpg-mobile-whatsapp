@@ -1,8 +1,8 @@
-import { HallType } from "../../types";
+import { HallType, Saveable } from "../../types";
 import { randomItemInArray } from "../../utils";
 import { Hall } from "../hall/hall.entity";
 
-export class Dungeon {
+export class Dungeon implements Saveable {
   halls: Hall[][] = [];
   private _rateEnemy: number = 0.2;
   private _rateTreasure: number = 0.05;

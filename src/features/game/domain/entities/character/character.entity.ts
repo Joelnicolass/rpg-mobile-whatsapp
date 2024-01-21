@@ -1,4 +1,4 @@
-import { AttributeType, CharacterType } from "../../types";
+import { AttributeType, CharacterType, Saveable } from "../../types";
 import { Attribute, AttributesFactory } from "../attribute/attribute.entity";
 import {
   EffectBase,
@@ -15,7 +15,7 @@ import {
 } from "../skill_base/skill_base.entity";
 
 // CLASE PARA PERSONAJES Y ENEMIGOS
-export class Character {
+export class Character implements Saveable {
   private _name: string;
   private _type: CharacterType[];
   private _attributes: Attribute[];
@@ -192,7 +192,7 @@ export class Character {
 export class CharacterFactory {
   static createWizard(name: string, randomSkills: boolean = false): Character {
     const skills = randomSkills
-      ? [new RandomTribesAttack(), new RandomTribesAttack()]
+      ? [new RandomTribesAttack(true), new RandomTribesAttack()]
       : [new Fireball(), new Heal()];
 
     return new Character({
@@ -206,7 +206,7 @@ export class CharacterFactory {
 
   static createWarrior(name: string, randomSkills: boolean = false): Character {
     const skills = randomSkills
-      ? [new RandomTribesAttack(), new RandomTribesAttack()]
+      ? [new RandomTribesAttack(true), new RandomTribesAttack()]
       : [new BasicAttack()];
 
     return new Character({
@@ -220,7 +220,7 @@ export class CharacterFactory {
 
   static createArcher(name: string, randomSkills: boolean = false): Character {
     const skills = randomSkills
-      ? [new RandomTribesAttack(), new RandomTribesAttack()]
+      ? [new RandomTribesAttack(true), new RandomTribesAttack()]
       : [new BasicAttack()];
 
     return new Character({

@@ -1,11 +1,11 @@
-import { AttributeType } from "../../types";
+import { AttributeType, Saveable } from "../../types";
 import { Character } from "../character/character.entity";
 
 export interface LevelUpCallback {
   (newLevel: number): void;
 }
 
-export class ExperienceSystem {
+export class ExperienceSystem implements Saveable {
   private _experience: number = 0;
   private _level: number;
   private _levelUpCallback: LevelUpCallback;

@@ -1,7 +1,7 @@
-import { AttributeType } from "../../types";
+import { AttributeType, Saveable } from "../../types";
 
 // CLASE PARA LOS ATRIBUTOS
-export class Attribute {
+export class Attribute implements Saveable {
   private _name: AttributeType;
   private _value: number;
   private _maxValue: number;

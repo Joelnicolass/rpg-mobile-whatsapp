@@ -33,3 +33,18 @@ export enum EffectType {
   HP = "HP",
   BURN = "BURN",
 }
+
+export enum HallType {
+  EMPTY = "empty",
+  ENEMY = "enemy",
+  TREASURE = "treasure",
+  WAY = "way",
+  EXIT = "exit",
+}
+
+export enum Direction {
+  UP = "up",
+  DOWN = "down",
+  LEFT = "left",
+  RIGHT = "right",
+}

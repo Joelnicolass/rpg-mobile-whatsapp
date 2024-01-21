@@ -40,6 +40,18 @@ export class Attribute {
   updateMaxValue(value: number) {
     this._maxValue = value;
   }
+
+  public save(): Record<string, unknown> {
+    return {
+      name: this._name,
+      value: this._value,
+      maxValue: this._maxValue,
+    };
+  }
+
+  public static load(data: Record<string, unknown>): Attribute {
+    return new Attribute(data.name as AttributeType, data.value as number);
+  }
 }
 
 export class AttributesFactory {

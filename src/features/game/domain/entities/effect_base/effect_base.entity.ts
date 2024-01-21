@@ -59,10 +59,40 @@ export abstract class EffectBase implements Effect {
   public isActive(): boolean {
     return this._duration > 0;
   }
+
+  public save(): Record<string, unknown> {
+    return {
+      name: this._name,
+      attributes: this._attributesTypes,
+      value: this._value,
+      duration: this._duration,
+      __class__: this.constructor.name,
+    };
+  }
+
+  static load(data: Record<string, unknown>): EffectBase {
+    const name = data.name as string;
+    const attributes = data.attributes as AttributeType[];
+    const value = data.value as number;
+    const duration = data.duration as number;
+
+    switch (data.__class__) {
+      case "InmediateHPEffect":
+        return new InmediateHPEffect(value);
+      case "BurnEffect":
+        return new BurnEffect(value, duration);
+      case "PoisonEffect":
+        return new PoisonEffect(value, duration);
+      case "CurseEffect":
+        return new CurseEffect(value, duration);
+      default:
+        throw new Error("Effect not found");
+    }
+  }
 }
 
 // EFECTOS - IMPLEMENTACIONES
-export class HPBaseEffect extends EffectBase {
+export class InmediateHPEffect extends EffectBase {
   constructor(value: number) {
     super(EffectType.HP, [AttributeType.HP], value, 1);
   }
@@ -71,5 +101,27 @@ export class HPBaseEffect extends EffectBase {
 export class BurnEffect extends EffectBase {
   constructor(value: number, duration: number) {
     super(EffectType.BURN, [AttributeType.HP], value, duration);
+  }
+}
+
+export class PoisonEffect extends EffectBase {
+  constructor(value: number, duration: number) {
+    super(
+      EffectType.POISON,
+      [AttributeType.HP, AttributeType.MANA],
+      value,
+      duration
+    );
+  }
+}
+
+export class CurseEffect extends EffectBase {
+  constructor(value: number, duration: number) {
+    super(
+      EffectType.CURSE,
+      [AttributeType.ATK, AttributeType.MANA, AttributeType.HP],
+      value,
+      duration
+    );
   }
 }

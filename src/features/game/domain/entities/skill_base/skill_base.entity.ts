@@ -8,8 +8,10 @@ import { intInRange, namesRandomAttacks, namesTribesSkills } from "../../utils";
 import { Character } from "../character/character.entity";
 import {
   BurnEffect,
+  CurseEffect,
   EffectBase,
-  HPBaseEffect,
+  InmediateHPEffect,
+  PoisonEffect,
 } from "../effect_base/effect_base.entity";
 
 export abstract class SkillBase implements UsableInPlayerAndEnemy {
@@ -131,6 +133,41 @@ export abstract class SkillBase implements UsableInPlayerAndEnemy {
       (e) => `${e.name} (${e.duration} turns)`
     )}`;
   }
+
+  public save(): Record<string, unknown> {
+    return {
+      name: this._name,
+      type: this._type,
+      force: this._force,
+      effects: this._effects.map((effect) => effect.save()),
+      manaCost: this._manaCost,
+      admittedCharacterTypes: this._admittedCharacterTypes,
+      __class__: this.constructor.name,
+    };
+  }
+
+  static load(data: Record<string, unknown>): SkillBase {
+    const effects = (data.effects as Record<string, unknown>[]).map((effect) =>
+      EffectBase.load(effect)
+    );
+
+    const admittedCharacterTypes = (
+      data.admittedCharacterTypes as string[]
+    ).map((type) => CharacterType[type as keyof typeof CharacterType]);
+
+    const skill = new (this as any)({
+      name: data.name as string,
+      type: (data.type as string[]).map(
+        (type) => SkillType[type as keyof typeof SkillType]
+      ),
+      force: data.force as number,
+      effects,
+      manaCost: data.manaCost as number,
+      admittedCharacterTypes,
+    });
+
+    return skill;
+  }
 }
 
 export class BasicAttack extends SkillBase {
@@ -174,7 +211,7 @@ export class Heal extends SkillBase {
       type: [SkillType.SPECIAL_EFFECT_PLAYER],
       force: 0,
       manaCost: 40,
-      effects: [new HPBaseEffect(50)],
+      effects: [new InmediateHPEffect(50)],
       admittedCharacterTypes: [CharacterType.WIZARD],
     });
   }
@@ -191,12 +228,41 @@ export class RandomAttackWithoutSpecialEffect extends SkillBase {
 }
 
 export class RandomTribesAttack extends SkillBase {
-  constructor() {
+  constructor(initialSkill = false) {
+    const _rateEffect = intInRange(1, 100);
+    const _rateEffectValue = intInRange(1, 20);
+    const _rateEffectDuration = intInRange(1, 10);
+    const _rateEffectType = intInRange(1, 4);
+
+    const _mapEffect: Record<number, { effect: EffectBase; type: SkillType }> =
+      {
+        1: {
+          effect: new BurnEffect(_rateEffectValue, _rateEffectDuration),
+          type: SkillType.SPECIAL_EFFECT_ENEMY,
+        },
+        2: {
+          effect: new PoisonEffect(_rateEffectValue, _rateEffectDuration),
+          type: SkillType.SPECIAL_EFFECT_ENEMY,
+        },
+        3: {
+          effect: new CurseEffect(_rateEffectValue, _rateEffectDuration),
+          type: SkillType.SPECIAL_EFFECT_ENEMY,
+        },
+        4: {
+          effect: new InmediateHPEffect(_rateEffectValue),
+          type: SkillType.SPECIAL_EFFECT_PLAYER,
+        },
+      };
+
+    const _effects = _rateEffect <= 50 ? [_mapEffect[_rateEffectType]] : [];
+
+    const _type = _effects.map((e) => e.type);
+
     super({
       name: namesTribesSkills[intInRange(0, namesTribesSkills.length - 1)],
-      type: [SkillType.GENERIC],
+      type: [SkillType.GENERIC, ..._type],
       force: intInRange(0, 200),
-      manaCost: intInRange(0, 100),
+      effects: _effects.map((e) => e.effect),
     });
   }
 }

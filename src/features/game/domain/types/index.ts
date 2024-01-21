@@ -32,6 +32,8 @@ export enum SkillType {
 export enum EffectType {
   HP = "HP",
   BURN = "BURN",
+  POISON = "POISON",
+  CURSE = "CURSE",
 }
 
 export enum HallType {
@@ -47,4 +49,10 @@ export enum Direction {
   DOWN = "down",
   LEFT = "left",
   RIGHT = "right",
+}
+
+// interfaz para guardar y cargar el juego
+export interface Saveable {
+  save(): Record<string, unknown>;
+  load(data: Record<string, unknown>): void;
 }

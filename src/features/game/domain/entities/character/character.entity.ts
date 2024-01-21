@@ -1,6 +1,9 @@
 import { AttributeType, CharacterType } from "../../types";
 import { Attribute, AttributesFactory } from "../attribute/attribute.entity";
-import { EffectBase, HPBaseEffect } from "../effect_base/effect_base.entity";
+import {
+  EffectBase,
+  InmediateHPEffect,
+} from "../effect_base/effect_base.entity";
 import { ExperienceSystem } from "../experience_system/experience_system_base.entity";
 import { ItemBase } from "../item/item.entity";
 import {
@@ -150,6 +153,40 @@ export class Character {
       effect.isActive()
     );
   }
+
+  public save(): Record<string, unknown> {
+    return {
+      name: this._name,
+      type: this._type,
+      attributes: this._attributes.map((attr) => attr.save()),
+      experienceSystem: this._experienceSystem.save(),
+      skills: this._skills.map((skill) => skill.save()),
+      activeEffects: this._activeEffects.map((effect) => effect.save()),
+    };
+  }
+
+  static load(data: Record<string, unknown>): Character {
+    const attributes = (data.attributes as Record<string, unknown>[]).map(
+      (attr) => Attribute.load(attr)
+    );
+
+    const skills = (data.skills as Record<string, unknown>[]).map((skill) =>
+      SkillBase.load(skill)
+    );
+
+    const activeEffects = (data.activeEffects as Record<string, unknown>[]).map(
+      (effect) => EffectBase.load(effect)
+    );
+
+    return new Character({
+      name: data.name as string,
+      type: data.type as CharacterType[],
+      attributes,
+      objectsEquipped: [],
+      skills,
+      activeEffects,
+    });
+  }
 }
 
 export class CharacterFactory {
@@ -197,8 +234,8 @@ export class CharacterFactory {
 
   static createRandomCharacter(name: string): Character {
     const random = Math.random();
-    if (random < 0.33) return this.createWizard(name);
-    else if (random < 0.66) return this.createWarrior(name);
-    else return this.createArcher(name);
+    if (random < 0.33) return this.createWizard(name, true);
+    else if (random < 0.66) return this.createWarrior(name, true);
+    else return this.createArcher(name, true);
   }
 }

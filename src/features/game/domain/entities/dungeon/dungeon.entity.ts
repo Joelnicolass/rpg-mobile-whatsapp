@@ -122,7 +122,8 @@ export class Dungeon {
     return coords;
   }
 
-  saveDungeon(): Record<HallType, string> {
+  // TODO! Hay que testear si funciona este metodo de guardado
+  save(): Record<HallType, string> {
     const elements = Object.values(HallType);
 
     const data = elements.reduce((acc, element) => {
@@ -139,7 +140,8 @@ export class Dungeon {
     return data;
   }
 
-  loadDungeon(data: Record<HallType, string>): void {
+  // TODO! todavia no esta completamente implementado
+  load(data: Record<HallType, string>): void {
     Object.entries(data).forEach(([key, value]) => {
       const coords = value.split(";").map((coord) => {
         const [x, y] = coord.split(",");

@@ -3,6 +3,7 @@ import { intInRange } from "../../utils";
 import { Character } from "../character/character.entity";
 import { Dungeon } from "../dungeon/dungeon.entity";
 import { Hall } from "../hall/hall.entity";
+import { ExperienceSystem } from "../experience_system/experience_system_base.entity";
 
 export class GameSystem {
   private _player: Character;
@@ -96,5 +97,20 @@ export class GameSystem {
       this._playerPosition.x,
       this._playerPosition.y
     );
+  }
+
+  save(): Record<string, unknown> {
+    return this.player.save();
+  }
+
+  static load(data: Record<string, unknown>): GameSystem {
+    const player = Character.load(data);
+    const experienceSystem = ExperienceSystem.load(
+      data.experienceSystem as Record<string, unknown>,
+      player
+    );
+
+    player.experienceSystem = experienceSystem;
+    return new GameSystem(player);
   }
 }

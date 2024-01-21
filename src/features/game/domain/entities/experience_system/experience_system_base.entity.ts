@@ -70,4 +70,21 @@ export class ExperienceSystem {
       attr.updateMaxValue(newMaxValue);
     });
   }
+
+  public save(): Record<string, unknown> {
+    return {
+      experience: this._experience,
+      level: this._level,
+    };
+  }
+
+  static load(
+    data: Record<string, unknown>,
+    player: Character
+  ): ExperienceSystem {
+    return new ExperienceSystem(
+      (newLevel) => ExperienceSystem.defaultLevelUpCallback(newLevel, player),
+      data.level as number
+    );
+  }
 }

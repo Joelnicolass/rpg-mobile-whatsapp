@@ -64,9 +64,7 @@ const shouldInitBattle = (hall: Hall) => hall.type === HallType.ENEMY;
 const battle = async (game: GameSystem, hall: Hall) => {
   let inBattle = true;
   const player = game.player;
-  const enemy = CharacterFactory.createRandomCharacter(
-    namesTribesCharacters[intInRange(0, namesTribesCharacters.length - 1)]
-  );
+  const enemy = CharacterFactory.createRandomCasualEnemy();
 
   draw.__SHOWINCONSOLE__(game.playerPosition);
   showStats(player, enemy);

@@ -1,4 +1,5 @@
 import { AttributeType, CharacterType, Saveable } from "../../types";
+import { intInRange, namesAnmilasTribes } from "../../utils";
 import { Attribute, AttributesFactory } from "../attribute/attribute.entity";
 import {
   EffectBase,
@@ -10,6 +11,7 @@ import {
   BasicAttack,
   Fireball,
   Heal,
+  RandomAnimalTribesAttack,
   RandomTribesAttack,
   SkillBase,
 } from "../skill_base/skill_base.entity";
@@ -197,7 +199,11 @@ export class Character implements Saveable {
 }
 
 export class CharacterFactory {
-  static createWizard(name: string, randomSkills: boolean = false): Character {
+  static createWizard(
+    name: string,
+    randomSkills: boolean = false,
+    level: number = 1
+  ): Character {
     const skills = randomSkills
       ? [new RandomTribesAttack(true), new RandomTribesAttack()]
       : [new Fireball(), new Heal()];
@@ -208,10 +214,15 @@ export class CharacterFactory {
       attributes: AttributesFactory.createAttributesWizard(),
       objectsEquipped: [],
       skills,
+      initialLevel: level,
     });
   }
 
-  static createWarrior(name: string, randomSkills: boolean = false): Character {
+  static createWarrior(
+    name: string,
+    randomSkills: boolean = false,
+    level: number = 1
+  ): Character {
     const skills = randomSkills
       ? [new RandomTribesAttack(true), new RandomTribesAttack()]
       : [new BasicAttack()];
@@ -222,10 +233,15 @@ export class CharacterFactory {
       attributes: AttributesFactory.createAttributesWarrior(),
       objectsEquipped: [],
       skills,
+      initialLevel: level,
     });
   }
 
-  static createArcher(name: string, randomSkills: boolean = false): Character {
+  static createArcher(
+    name: string,
+    randomSkills: boolean = false,
+    level: number = 1
+  ): Character {
     const skills = randomSkills
       ? [new RandomTribesAttack(true), new RandomTribesAttack()]
       : [new BasicAttack()];
@@ -236,13 +252,38 @@ export class CharacterFactory {
       attributes: AttributesFactory.createAttributesArcher(),
       objectsEquipped: [],
       skills,
+      initialLevel: level,
     });
   }
 
-  static createRandomCharacter(name: string): Character {
+  static createRandomCharacter(name: string, level = 1): Character {
     const random = Math.random();
-    if (random < 0.33) return this.createWizard(name, true);
-    else if (random < 0.66) return this.createWarrior(name, true);
-    else return this.createArcher(name, true);
+    if (random < 0.33) return this.createWizard(name, true, level);
+    else if (random < 0.66) return this.createWarrior(name, true, level);
+    else return this.createArcher(name, true, level);
+  }
+
+  static createRandomCasualEnemy(
+    name: string = namesAnmilasTribes[
+      intInRange(0, namesAnmilasTribes.length - 1)
+    ],
+    initialLevel: number = 1
+  ): Character {
+    return new Character({
+      name,
+      type: [CharacterType.ANIMAL],
+      attributes: AttributesFactory.createAttributes(
+        [
+          AttributeType.HP,
+          AttributeType.ATK,
+          AttributeType.DEF,
+          AttributeType.MANA,
+        ],
+        [intInRange(50, 200), intInRange(5, 10), 0, 0]
+      ),
+      objectsEquipped: [],
+      skills: [new RandomAnimalTribesAttack()],
+      initialLevel,
+    });
   }
 }

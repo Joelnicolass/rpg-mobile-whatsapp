@@ -57,9 +57,11 @@ export class Attribute implements Saveable {
 export class AttributesFactory {
   static createAttributes(
     attributes: AttributeType[],
-    value: number
+    value: number[]
   ): Attribute[] {
-    return attributes.map((attr) => new Attribute(attr, value));
+    return attributes.map(
+      (attr) => new Attribute(attr, value[attributes.indexOf(attr)])
+    );
   }
 
   static createDefaultAttributes(): Attribute[] {

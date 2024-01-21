@@ -14,6 +14,7 @@ export enum CharacterType {
   WARRIOR = "warrior",
   WIZARD = "wizard",
   ARCHER = "archer",
+  ANIMAL = "animal",
 }
 
 export enum AttributeType {

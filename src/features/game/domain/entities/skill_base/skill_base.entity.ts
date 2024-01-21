@@ -280,3 +280,16 @@ export class RandomTribesAttack extends SkillBase {
     });
   }
 }
+
+export class RandomAnimalTribesAttack extends SkillBase {
+  constructor() {
+    super({
+      name: "Wild Attack",
+      force: intInRange(0, 20),
+      type: [SkillType.GENERIC],
+      effects: [],
+      admittedCharacterTypes: [CharacterType.ANIMAL],
+      manaCost: 0,
+    });
+  }
+}

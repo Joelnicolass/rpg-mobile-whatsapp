@@ -25,6 +25,7 @@ export class Character implements Saveable {
   private _skills: SkillBase[];
   private _skillsLimit: number = 4;
   private _activeEffects: EffectBase[] = [];
+  private _initialLevel: number;
 
   constructor({
     name,
@@ -34,6 +35,7 @@ export class Character implements Saveable {
     experienceSystem,
     skills,
     activeEffects,
+    initialLevel,
   }: {
     name: string;
     type: CharacterType[];
@@ -42,16 +44,19 @@ export class Character implements Saveable {
     skills: SkillBase[];
     experienceSystem?: ExperienceSystem;
     activeEffects?: EffectBase[];
+    initialLevel?: number;
   }) {
     this._name = name;
     this._type = type;
     this._attributes = attributes;
     this._objectsEquipped = objectsEquipped;
+    this._initialLevel = initialLevel || 1;
+
     this._experienceSystem =
       experienceSystem ||
       new ExperienceSystem(
         (newLevel) => ExperienceSystem.defaultLevelUpCallback(newLevel, this),
-        1
+        initialLevel
       );
 
     this._skills = skills;
@@ -162,6 +167,7 @@ export class Character implements Saveable {
       experienceSystem: this._experienceSystem.save(),
       skills: this._skills.map((skill) => skill.save()),
       activeEffects: this._activeEffects.map((effect) => effect.save()),
+      initialLevel: this._initialLevel,
     };
   }
 
@@ -181,6 +187,7 @@ export class Character implements Saveable {
     return new Character({
       name: data.name as string,
       type: data.type as CharacterType[],
+      initialLevel: data.initialLevel as number,
       attributes,
       objectsEquipped: [],
       skills,

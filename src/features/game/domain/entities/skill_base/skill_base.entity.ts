@@ -231,43 +231,43 @@ export class RandomAttackWithoutSpecialEffect extends SkillBase {
 export class RandomTribesAttack extends SkillBase {
   constructor(initialSkill = false) {
     const _rateEffect = intInRange(1, 100);
-    const _rateEffectValue = intInRange(1, 20);
-    const _rateEffectDuration = intInRange(1, 10);
-    const _rateEffectType = intInRange(1, 4);
+    const _effectValue = intInRange(1, 20);
+    const _effectDuration = intInRange(1, 10);
+    const _effectType = intInRange(1, 4);
 
     const _mapEffect: Record<number, { effect: EffectBase; type: SkillType }> =
       {
         1: {
           effect: new BurnEffect(
-            _rateEffectValue,
-            _rateEffectDuration,
+            _effectValue,
+            _effectDuration,
             intInRange(10, 100)
           ),
           type: SkillType.SPECIAL_EFFECT_ENEMY,
         },
         2: {
           effect: new PoisonEffect(
-            _rateEffectValue,
-            _rateEffectDuration,
+            _effectValue,
+            _effectDuration,
             intInRange(10, 50)
           ),
           type: SkillType.SPECIAL_EFFECT_ENEMY,
         },
         3: {
           effect: new CurseEffect(
-            _rateEffectValue,
-            _rateEffectDuration,
+            _effectValue,
+            _effectDuration,
             intInRange(10, 20)
           ),
           type: SkillType.SPECIAL_EFFECT_ENEMY,
         },
         4: {
-          effect: new InmediateHPEffect(_rateEffectValue),
+          effect: new InmediateHPEffect(intInRange(10, 50), 1, 100),
           type: SkillType.SPECIAL_EFFECT_PLAYER,
         },
       };
 
-    const _effects = _rateEffect <= 50 ? [_mapEffect[_rateEffectType]] : [];
+    const _effects = _rateEffect <= 50 ? [_mapEffect[_effectType]] : [];
 
     const _type = _effects.map((e) => e.type);
 

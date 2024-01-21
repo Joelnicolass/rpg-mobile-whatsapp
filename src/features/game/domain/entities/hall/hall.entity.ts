@@ -4,17 +4,17 @@ import { Character, CharacterFactory } from "../character/character.entity";
 
 export class Hall {
   private _type: HallType;
-  private _enemy: Character | null;
+  //private _enemy: Character | null; // TODO ver si uso inyección de dependencias
   private _treasure: any | null; // TODO implementar tesoros
 
   constructor(tipo: HallType = HallType.WAY) {
     this._type = tipo;
-    this._enemy =
+    /* this._enemy =
       tipo === HallType.ENEMY
         ? CharacterFactory.createRandomCharacter(
             randomItemInArray(namesTribesCharacters)
           )
-        : null;
+        : null; */
   }
 
   get type(): HallType {
@@ -25,7 +25,7 @@ export class Hall {
     this._type = tipo;
   }
 
-  get enemy(): Character | null {
+  /*   get enemy(): Character | null {
     return this._enemy;
-  }
+  } */
 }

@@ -9,6 +9,7 @@ import { Hall } from "../../domain/entities/hall/hall.entity";
 import { Direction, HallType } from "../../domain/types";
 import { DrawConsole } from "./draw_console";
 import { intInRange } from "../../domain/utils";
+import { namesTribesCharacters } from "../../domain/utils/index";
 
 const showPlayerStats = (player: Character) => {
   console.log("PLAYER STATS: ");
@@ -63,7 +64,9 @@ const shouldInitBattle = (hall: Hall) => hall.type === HallType.ENEMY;
 const battle = async (game: GameSystem, hall: Hall) => {
   let inBattle = true;
   const player = game.player;
-  const enemy = hall.enemy!;
+  const enemy = CharacterFactory.createRandomCharacter(
+    namesTribesCharacters[intInRange(0, namesTribesCharacters.length - 1)]
+  );
 
   draw.__SHOWINCONSOLE__(game.playerPosition);
   showStats(player, enemy);
